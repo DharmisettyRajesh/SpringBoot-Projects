@@ -1,0 +1,564 @@
+package com.mss.cm.repository;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_FETCHING_ACCOUNT;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_PREFERENCE;
+
+import com.mss.cm.constants.CmAppConstants;
+import com.mss.cm.exceptions.CmDataAccessLayerException;
+import com.mss.cm.model.Account;
+import com.mss.cm.model.Contact1;
+import com.mss.cm.model.Location;
+import com.mss.cm.model.Preference;
+import com.mss.cm.util.CramUtil;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
+import java.util.Objects;
+
+@Repository
+public class PreferenceRepository {
+
+	@Autowired
+	private NamedParameterJdbcTemplate sqlJdbcTemplate;
+
+	@Autowired
+	private JdbcTemplate jdbc;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	private CramUtil cramutil;
+
+	@Autowired
+	private Properties preferenceQueriesBean;
+
+	private static final Logger logger = LogManager.getLogger(PreferenceRepository.class);
+
+	public List getPreferenceByLoginId(String loginId) {
+		String sql = preferenceQueriesBean.getProperty("GET_PREFERENCE");
+		System.out.println(sql);
+		List preferenceList = null;
+		try {
+
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("loginId", loginId);
+			preferenceList = sqlJdbcTemplate.query(sql, params,
+
+					(rs, rowNum) -> new Preference(rs.getInt("id"), rs.getString("accountId"),
+							rs.getString("contactId"), rs.getString("loginId")));
+
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_PREFERENCE + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_PREFERENCE, ex);
+		}
+		return preferenceList;
+	}
+
+	public int saveAndUpdatePreferencesData(Preference preference) {
+		String sql = "";
+
+		int updateResponse = 0;
+		try {
+			if (Objects.nonNull(preference.getId()) && preference.getId() != 0) {
+				sql = "update preferences set contactsId='" + preference.getContactId() + "' where loginId='"
+						+ preference.getLoginId() + "' and accountsId='" + preference.getAccountId() + "'";
+
+				// sql = preferencesQueriesBean.getProperty("UPDATE_PREFERENCES_DATA");
+			} else {
+
+				String con = preference.getAccountId();
+				String list[] = con.split(",");
+
+				for (String accountId : list) {
+					// int individualContactId = Integer.parseInt(accountId);
+					preference.setAccountId(accountId);
+
+					sql = preferenceQueriesBean.getProperty("SAVE_PREFERENCE");
+
+					updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(preference));
+				}
+			}
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_PREFERENCE + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_PREFERENCE, ex);
+		}
+		return updateResponse;
+	}
+
+	public List<Account> fetchPreference(Preference preference) {
+		String Id = "";
+		Map finalMap = new HashMap();
+
+		List responseList = new ArrayList();
+		List accountlist = null;
+		String loginId = preference.getLoginId();
+		String sql = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_DATA");
+		sql = sql + " and loginId='" + loginId + "'";
+		System.out.println("sql" + sql);
+		List<String> result = jdbc.queryForList(sql, String.class);
+		for (String accId : result) {
+			Id = Id + accId + ",";
+
+		}
+		List<Account> account = new ArrayList<Account>();
+		String count = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_COUNT1");
+		String sql1 = preferenceQueriesBean.getProperty("FETCH_PREFERENCESss_DATA");
+		sql1 = sql1 + "(" + Id.substring(0, Id.length() - 1) + ")";
+		System.out.println("sql1" + sql1);
+		String serachFilterQuery = getFilterQuery(preference);
+
+		if (StringUtils.isNotBlank(serachFilterQuery)) {
+			System.out.println(serachFilterQuery + "serachFilterQuery");
+			sql1 = sql1 + serachFilterQuery;
+			count = count + serachFilterQuery;
+			System.out.println("count1" + count);
+		}
+		int offset = (preference.getPageNum() - 1) * preference.getPageSize();
+		serachFilterQuery = serachFilterQuery + " LIMIT " + preference.getPageSize() + " OFFSET " + offset;
+
+		System.out.println(sql1 + serachFilterQuery + "sql111111");
+		try {
+			System.out.println("status");
+			int ids = jdbc.queryForObject(count, Integer.class);
+			System.out.println("status" + ids);
+			// Map m = (Map) (accountlist.get(0));
+//           Map <?,?> m = (Map <?,?>) (accountlist.get(0));
+			System.out.println("status");
+			System.out.println("sql2");
+			List<Account> dataList = new ArrayList<Account>();
+			System.out.println("sql2gfg");
+			String sql2 = preferenceQueriesBean.getProperty("FETCH_NOT_PREFERENCES_DATA");
+
+			System.out.println(sql2 + "sql2");
+			sql2 = sql2 + "( " + Id.substring(0, Id.length() - 1) + ")";
+			if (preference.getStatus().length() != 3) {
+				sql1 = sql1 + " and status ='" + preference.getStatus() + "'";
+				sql2 = sql2 + " and status ='" + preference.getStatus() + "'";
+				System.out.println("status" + sql1);
+
+			}
+
+			System.out.println(sql2 + "sql2");
+			if (StringUtils.isNotBlank(serachFilterQuery)) {
+				sql2 = sql2 + serachFilterQuery;
+				count = count + serachFilterQuery;
+
+			}
+
+			String query = sql1 + " union " + sql2;
+
+			System.out.println("query" + query);
+			dataList = sqlJdbcTemplate.query(query,
+					(rs, rowNum) -> new Account(rs.getInt("id"), rs.getString("region"), rs.getString("teritory"),
+							rs.getString("state"), rs.getString("industry"), rs.getString("status"),
+							rs.getString("type"), rs.getString("name"), rs.getString("alias"),
+							rs.getInt("primaryAddressId"), rs.getString("phone"), rs.getString("webAddress"),
+							rs.getString("createdBy"), rs.getString("dateCreated"), rs.getString("modifiedBy"),
+							rs.getString("dateModified"), rs.getString("linkedinurl"),rs.getString("stateName"),rs.getInt("hid"), "NA"));
+			
+			
+			for (Account dto : dataList) {
+				for (String res : result) {
+					if (res.equals(dto.getId() + "")) {
+						dto.setPreference("preferenced");
+					}
+				}
+			}
+
+			System.out.println("hii");
+			finalMap.put("data", dataList);
+			finalMap.put("count", ids);
+			responseList.add(finalMap);
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT, ex);
+		}
+		return responseList;
+	}
+
+	private String getFilterQuery(Preference preference) {
+
+		List<Object[]> filter = new ArrayList();
+
+		if (StringUtils.isNotBlank(preference.getName()))
+			filter.add(new Object[] { "name", preference.getName(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		if (StringUtils.isNotBlank(preference.getState()))
+			filter.add(new Object[] { "state", preference.getState(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		if (StringUtils.isNotBlank(preference.getWebAddress()))
+			filter.add(new Object[] { "webAddress", preference.getWebAddress().trim(), CmAppConstants.STRING_TYPE,
+					"LIKE" });
+
+		return cramutil.getFilter(filter);
+	}
+
+	public int deleteAccountPreference(Preference preference) {
+
+		// int updateResponse = 0;
+		String sql = preferenceQueriesBean.getProperty("DELETE_ACCOUNTID_PREFERENCES");
+		try {
+
+			System.out.println(sql);
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("accountId", preference.getAccountId());
+			System.out.println(params.addValue("accountId", preference.getAccountId()));
+			params.addValue("loginId", preference.getLoginId());
+			return sqlJdbcTemplate.update(sql, params);
+//			MapSqlParameterSource params = new MapSqlParameterSource();
+//			params.addValue("id", id);
+//			return sqlJdbcTemplate.update(sql, params);
+			// updateResponse = sqlJdbcTemplate.update(sql, new
+			// BeanPropertySqlParameterSource(preference));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_PREFERENCE + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_PREFERENCE, ex);
+		}
+		// return updateResponse;
+
+	}
+
+//	public int deletePreferences(PreferencesDTO preferencesDTO) {
+//
+//		String sql = preferencesQueriesBean.getProperty("DELETE_PREFERENCES_DATA");
+//		try {
+//		MapSqlParameterSource params = new MapSqlParameterSource();
+//		params.addValue("accountsId", preferencesDTO.getAccountsId());
+//		params.addValue("loginId", preferencesDTO.getLoginId());
+//		return sqlJdbcTemplate.update(sql, params);
+//		} catch (Exception ex) {
+//		logger.error(DATA_LAYER_EXP_IN_DELETE_PREFERENCES_DATA + ":: {}", ex.getMessage());
+//		throw new ErmDataAccessLayerException(DATA_LAYER_EXP_IN_DELETE_PREFERENCES_DATA, ex);
+//		}
+//		}
+
+	public List fetchPreferenceBasedContactsAndAddres(Preference preference) {
+		String Id = "";
+		Map finalMap = new HashMap();
+		List responseList = new ArrayList();
+		List accountlist = null;
+		String loginId = preference.getLoginId();
+		String ContactId = preference.getContactId();
+		String sql = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_CONTACTSId_DATA");
+		
+		sql = sql + " and loginId='" + loginId + "'";
+//		System.out.println("ksadfn===="+);
+		List<String> result = jdbc.queryForList(sql, String.class);
+		System.out.println("result====>"+result);
+		if (loginId != null && result != null) {
+			
+			 HashSet<String> preferenceList = new HashSet();
+				for (String contactId : result) {
+
+					if (StringUtils.isNotBlank(contactId)) {
+						
+						preferenceList.addAll(Arrays.asList(contactId.split(",")));
+						Id = Id + contactId + ",";
+					}
+				}
+
+			String count = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_CONTACT_COUNT1");
+			int contactIdsCount = jdbc.queryForObject(count, Integer.class);
+			String addresSql = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_ADDRESS_DATA_BASEDON_CONTACTS");
+			addresSql = addresSql + "(" + Id.substring(0, Id.length() - 1) + ")";
+			String serachFilterQuerycontactAndAddress = getFilterQueryPreferenceConatctAndAddress(preference);
+			System.out.println("serachFilterQuerycontactAndAddress"+serachFilterQuerycontactAndAddress);
+			
+
+			String preferenceNotSelectedSql = preferenceQueriesBean
+					.getProperty("FETCH_PREFERENCES_ADDRESS_DATA_BASEDON_NOT_PREFERENCE_CONTACTS");
+			preferenceNotSelectedSql = preferenceNotSelectedSql + "(" + Id.substring(0, Id.length() - 1) + ")";
+
+			String unionQuery = addresSql + " union " + preferenceNotSelectedSql;
+			
+			if (StringUtils.isNotBlank(serachFilterQuerycontactAndAddress)) {
+				unionQuery = unionQuery + serachFilterQuerycontactAndAddress;
+				System.out.println("count1" + count);
+			}
+
+			int offset = (preference.getPageNum() - 1) * preference.getPageSize();
+			String finalQuery = unionQuery + " LIMIT " + preference.getPageSize() + " OFFSET " + offset;List<Map<String, Object>> adreesSearchList = null;
+			List addressList = new ArrayList();
+			Map map = null;
+            adreesSearchList = jdbc.queryForList(finalQuery);
+
+			for (Map<String, Object> row : adreesSearchList) {
+
+				map = new HashMap();
+				map.put("Id", row.get("Id"));
+				map.put("AccountId", row.get("AccountId"));
+				map.put("Teritory", row.get("ContactStatus"));
+				map.put("LoginId", row.get("LoginId"));
+				map.put("Password", row.get("Password"));
+				map.put("LastName", row.get("LastName"));
+				map.put("AddressType", row.get("AddressType"));
+				map.put("addressline1", row.get("addressline1"));
+				map.put("firstName", row.get("firstName"));
+				map.put("middleName", row.get("middleName"));
+				map.put("title", row.get("title"));
+				map.put("gender", row.get("gender"));
+				map.put("dob", row.get("dob"));
+				map.put("contactStatus", row.get("contactStatus"));
+				map.put("doa", row.get("doa"));
+				map.put("areaSpecialization", row.get("areaSpecialization"));
+				map.put("homePhone", row.get("homePhone"));
+				map.put("officePhone", row.get("officePhone"));
+				map.put("cellPhone", row.get("cellPhone"));
+				map.put("email1", row.get("email1"));
+				map.put("email2", row.get("email2"));
+				map.put("referredBy", row.get("referredBy"));
+				map.put("createdBy", row.get("createdBy"));
+				map.put("createdDate", row.get("createdDate"));
+				map.put("modifiedBy", row.get("modifiedBy"));
+				map.put("modifiedDate", row.get("modifiedDate"));
+				map.put("dontSendEmail", row.get("dontSendEmail"));
+				map.put("linkedIn", row.get("linkedIn"));
+				map.put("department", row.get("department"));
+				map.put("shiftStartTime", row.get("shiftStartTime"));
+				map.put("hId", row.get("hId"));
+				map.put("objectType", row.get("objectType"));
+				map.put("objectId", row.get("objectId"));
+				map.put("addressLine2", row.get("addressLine2"));
+				map.put("city", row.get("city"));
+				map.put("state", row.get("state"));
+				map.put("mailStop", row.get("mailStop"));
+				map.put("zip", row.get("zip"));
+				map.put("country", row.get("country"));
+				map.put("mailStop", row.get("mailStop"));
+				
+					 if(preferenceList.contains(row.get("Id").toString()))
+					 {
+						 System.out.println("contactIds==>"+row.get("Id"));
+						
+					   System.out.println("preferenced");
+				       map.put("prferenced","true");
+				       
+					 }
+					
+					
+				addressList.add(map);
+			}
+			responseList.add(addressList);
+			finalMap.put("count", contactIdsCount);
+		} 
+		else{
+			String getallSql = preferenceQueriesBean.getProperty("FETCHALL_PREFERENCES_ADDRESS_AND_CONTACTS");
+			String count1 = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_CONTACT_COUNT1");
+			int contactIdsCount1 = jdbc.queryForObject(count1, Integer.class);
+			String serachFilterQuerycontactAndAddress = getFilterQueryPreferenceConatctAndAddress(preference);
+			if (StringUtils.isNotBlank(serachFilterQuerycontactAndAddress)) {
+				getallSql = getallSql + serachFilterQuerycontactAndAddress;
+			
+			}
+
+			int offset = (preference.getPageNum() - 1) * preference.getPageSize();
+			String finalQuery1 = getallSql + " LIMIT " + preference.getPageSize() + " OFFSET " + offset;List<Map<String, Object>> adreesSearchList = null;
+			List<Map<String, Object>> adreesandcontactSearchList1 = null;
+			adreesandcontactSearchList1 = jdbc.queryForList(finalQuery1);
+	
+			Map map1 = null;
+			List addressList1 = new ArrayList();
+		
+			for (Map<String, Object> row : adreesandcontactSearchList1) {
+
+				map1 = new HashMap();
+				map1.put("Id", row.get("Id"));
+				map1.put("AccountId", row.get("AccountId"));
+				map1.put("Teritory", row.get("ContactStatus"));
+				map1.put("LoginId", row.get("LoginId"));
+				map1.put("Password", row.get("Password"));
+				map1.put("LastName", row.get("LastName"));
+				map1.put("AddressType", row.get("AddressType"));
+				map1.put("addressline1", row.get("addressline1"));
+				map1.put("firstName", row.get("firstName"));
+				map1.put("middleName", row.get("middleName"));
+				map1.put("contactStatus", row.get("contactStatus"));
+				map1.put("title", row.get("title"));
+				map1.put("gender", row.get("gender"));
+				map1.put("dob", row.get("dob"));
+				map1.put("doa", row.get("doa"));
+				map1.put("areaSpecialization", row.get("areaSpecialization"));
+				map1.put("homePhone", row.get("homePhone"));
+				map1.put("officePhone", row.get("officePhone"));
+				map1.put("cellPhone", row.get("cellPhone"));
+				map1.put("email1", row.get("email1"));
+				map1.put("email2", row.get("email2"));
+				map1.put("referredBy", row.get("referredBy"));
+				map1.put("createdBy", row.get("createdBy"));
+				map1.put("createdDate", row.get("createdDate"));
+				map1.put("modifiedBy", row.get("modifiedBy"));
+				map1.put("modifiedDate", row.get("modifiedDate"));
+				map1.put("dontSendEmail", row.get("dontSendEmail"));
+				map1.put("linkedIn", row.get("linkedIn"));
+				map1.put("department", row.get("department"));
+				map1.put("shiftStartTime", row.get("shiftStartTime"));
+				map1.put("hId", row.get("hId"));
+				map1.put("objectType", row.get("objectType"));
+				map1.put("objectId", row.get("objectId"));
+				map1.put("addressLine2", row.get("addressLine2"));
+				map1.put("city", row.get("city"));
+				map1.put("state", row.get("state"));
+				map1.put("mailStop", row.get("mailStop"));
+				map1.put("zip", row.get("zip"));
+				map1.put("country", row.get("country"));
+				map1.put("mailStop", row.get("mailStop"));
+				
+				addressList1.add(map1);
+			}
+			responseList.add(addressList1);
+			finalMap.put("count", contactIdsCount1);
+
+		}
+
+		responseList.add(finalMap);
+		return responseList;
+	}
+	
+	private String getFilterQueryPreferenceConatctAndAddress(Preference preference) {
+
+		List<Object[]> filter = new ArrayList();
+
+					if (StringUtils.isNotBlank(preference.getContactStatus()))
+						filter.add(new Object[] { "contactStatus", preference.getContactStatus(), CmAppConstants.STRING_TYPE, "LIKE" });
+					if (StringUtils.isNotBlank(preference.getTitle()))
+						filter.add(new Object[] { "title", preference.getTitle(), CmAppConstants.STRING_TYPE, "LIKE" });
+					if (StringUtils.isNotBlank(preference.getEmail1()))
+						filter.add(new Object[] { "email1", preference.getEmail1(), CmAppConstants.STRING_TYPE, "LIKE" });
+					if (StringUtils.isNotBlank(preference.getAccountId()))
+						filter.add(new Object[] { "accountId", preference.getAccountId(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		return cramutil.getFilter(filter);
+	}
+	
+
+	// address and contact
+	public List<Contact1> fetchPreferencecontactandaddress(Preference preference) {
+
+		System.out.println("preference==>" + preference.toString());
+		String Id = "";
+		Map finalMap = new HashMap();
+		List responseList = new ArrayList();
+		List accountlist = null;
+		List updateResponse = new ArrayList();
+		Map dataMap = null;
+		List<Contact1> contact = new ArrayList<Contact1>();
+		String loginId = preference.getLoginId();
+		String sql = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_ADDRESS_AND_CONTACT_DATA");
+		sql = sql + " and loginId='" + loginId + "'";
+		System.out.println("sql===>" + sql);
+		List<String> result = jdbc.queryForList(sql, String.class);
+
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+
+		System.out.println("id====" + result.size());
+
+		for (String accountId : result) {
+			if (result.size() > 1) {
+				if (!accountId.isEmpty()) {
+					Id = Id + accountId + ",";
+					System.out.println("Id==>" + Id);
+				}
+			} else {
+				Id = Id + accountId;
+			}
+		}
+		String count = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_ADDRESS_AND_CONTACT_COUNT1");
+		String sql1 = preferenceQueriesBean.getProperty("FETCH_PREFERENCES_ADDRESS_AND_CONTACT_DATA1");
+		String getLocation = preferenceQueriesBean.getProperty("FETCH_ADDRESS_PREFERENCE");
+		System.out.println("341-->" + Id);
+//		sql1 = sql1 + "( " + Id.substring(0, Id.length() - 1) + ")";
+		sql1 = sql1 + "( " + Id + ")";
+		System.out.println("sql===>" + sql);
+		String serachFilterQuery1 = getFilterQueryPreference(preference);
+		if (StringUtils.isNotBlank(serachFilterQuery1)) {
+
+			sql1 = sql1 + serachFilterQuery1;
+
+			count = count + serachFilterQuery1;
+		}
+		int offset = (preference.getPageNum() - 1) * preference.getPageSize();
+		serachFilterQuery1 = serachFilterQuery1 + " LIMIT " + preference.getPageSize() + " OFFSET " + offset;
+		System.out.println("sql1Query==>" + sql1 + serachFilterQuery1);
+		List<Contact1> contactList = null;
+		List<Location> locationList = new ArrayList<Location>();
+		try {
+
+			for (int i = 0; i < result.size(); i++) {
+				System.out.println("contactyIds==>" + result.get(i));
+			}
+			contact = sqlJdbcTemplate.query(sql1 + serachFilterQuery1,
+					(rs, rowNum) -> new Contact1(rs.getInt("id"), rs.getInt("accountId"), rs.getString("contactStatus"),
+							rs.getString("loginId"), rs.getString("password"), rs.getString("lastName"),
+							rs.getString("firstName"), rs.getString("middleName"), rs.getString("title"),
+							rs.getString("gender"), rs.getString("dob"), rs.getString("doa"),
+							rs.getString("areaSpecialization"), rs.getString("homePhone"), rs.getString("officePhone"),
+							rs.getString("cellPhone"), rs.getString("email1"), rs.getString("email2"),
+							rs.getString("referredBy"), rs.getString("createdBy"), rs.getString("createdDate"),
+							rs.getString("modifiedBy"), rs.getString("modifiedDate"), rs.getString("dontSendEmail"),
+							rs.getString("linkedIn"), rs.getString("department"), rs.getString("reportsTo"),
+							rs.getInt("departmentId"), rs.getString("shiftStartTime"), rs.getString("shiftEndTime"),
+							rs.getInt("hId")));
+
+			System.out.println("serachFilterQuery" + contact.get(0));
+			for (int i = 0; i < contact.size(); i++) {
+				System.out.println(contact.get(i).getId());
+				MapSqlParameterSource paramss = new MapSqlParameterSource();
+				paramss.addValue("objectId", contact.get(i).getId());
+				locationList = sqlJdbcTemplate.query(getLocation, paramss,
+						(row, rowNum) -> new Location(row.getInt("id"), row.getString("objectType"),
+								row.getInt("objectId"), row.getString("addressType"), row.getString("addressLine1"),
+								row.getString("addressLine2"), row.getString("city"), row.getString("state"),
+								row.getString("mailStop"), row.getString("zip"), row.getString("country"),
+								row.getInt("hId")));
+				contact.get(i).setLocation(locationList);
+
+			}
+
+			System.out.println("locationListData==>" + locationList);
+
+		}
+
+		catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_PREFERENCE + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_PREFERENCE, ex);
+		}
+		return contact;
+	}
+
+	private String getFilterQueryPreference(Preference preference) {
+
+		List<Object[]> filter = new ArrayList();
+
+//					if (StringUtils.isNotBlank(preference.getTitle()))
+//						filter.add(new Object[] { "title", preference.getTitle(), CmAppConstants.STRING_TYPE, "LIKE" });
+//					if (StringUtils.isNotBlank(preference.getTitle()))
+//						filter.add(new Object[] { "accountId", preference.getAccountId(), CmAppConstants.STRING_TYPE, "LIKE" });
+//					if (StringUtils.isNotBlank(preference.getAccountId()))
+//						filter.add(new Object[] { "contactStatus", preference.getContactStatus(), CmAppConstants.STRING_TYPE, "LIKE" });
+//                    if (StringUtils.isNotBlank(preference.getEmail1()))
+//						filter.add(new Object[] { "email1", preference.getEmail1(), CmAppConstants.STRING_TYPE, "LIKE" });
+//					if (StringUtils.isNotBlank(preference.getCellPhone()))
+//						filter.add(new Object[] { "cellPhone", preference.getCellPhone(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		return cramutil.getFilter(filter);
+	}
+
+}

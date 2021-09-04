@@ -1,0 +1,4 @@
+GitRepositoriesView.GitDirectories=/home/miracle/git/cram-backend/.git\:/home/miracle/git/sdm_backend/09-03/.git\:/home/miracle/git/cm-backend/.git\:/home/miracle/git/sdm_backend/.git\:/home/miracle/git/cm-backend1/.git\:
+GitRepositoriesView.GitDirectories.relative=/home/miracle/git/cram-backend/.git\:/home/miracle/git/sdm_backend/09-03/.git\:/home/miracle/git/cm-backend/.git\:/home/miracle/git/sdm_backend/.git\:/home/miracle/git/cm-backend1/.git\:
+core_autoIgnoreDerivedResources=false
+eclipse.preferences.version=1

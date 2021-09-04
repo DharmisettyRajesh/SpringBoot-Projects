@@ -1,0 +1,136 @@
+package com.mss.cram.constants;
+
+public final class CramAppMappingConstants {
+
+	public static final String FETCH_ALL_CONTACTS = "/fetchAllContacts";
+
+	public static final String SAVE_CONTACT = "/saveContacts";
+
+	public static final String DELETE_CONTACT = "/deleteContacts/{contactId}";
+
+	/*
+	 * Account Data
+	 */
+
+	public static final String SAVE_ACCOUNT = "/saveAccount";
+
+	public static final String UPDATE_ACCOUNT = "/updateAccount";
+
+	public static final String FETCH_ACCOUNT = "/getaccounts/{id}";
+
+	public static final String FETCH_ALL_ACCOUNT = "/getallaccounts";
+
+	public static final String DELETE_ACCOUNT = "/deleteaccounts/{id}";
+
+	/*
+	 * Lookup Data
+	 */
+
+	public static final String COUNTRY_LOOKUP = "/lookup/{value}";
+
+	public static final String ACCOUNT_LOOKUP = "/accountlookup";
+
+	public static final String STATE_LOOKUP = "/statelookup/{id}";
+
+	public static final String CONTACT_LOOKUP = "/contactlookup/{id}";
+
+	public static final String ALL_ACCOUNT_LOOKUP = "/allaccountlookup";
+
+	/*
+	 * Contact1 Data
+	 */
+
+	public static final String FETCH_ALL_CONTACT1 = "/fetchAllContact1";
+
+	public static final String SAVE_CONTACT1 = "/saveContact1";
+
+	public static final String UPDATE_CONTACT1 = "/updateContact1";
+
+	public static final String DELETE_CONTACT1 = "/deleteContact1/{id}";
+
+	public static final String FETCH_CONTACT1 = "/getContact1/{id}";
+
+	/*
+	 * Activity Data
+	 */
+
+	public static final String INSERT_ACTIVITY = "/insertActivity";
+
+	public static final String GET_ALL_ACTIVITY = "/getAllActivity";
+
+	public static final String GET_ACTIVITY = "/getactivity/{id}";
+
+	public static final String UPDATE_ACTIVITY = "/updateActivity";
+
+	public static final String DELETE_ACTIVITY = "/deleteActivity/{id}";
+
+	/*
+	 * Contact1 Data
+	 */
+
+	public static final String SAVE_COURSE = "/saveCourse";
+
+	public static final String UPDATE_COURSE = "/updateCourse";
+
+	public static final String DELETE_COURSE = "/deleteCourse/{id}";
+
+	public static final String FETCH_ALL_COURSE = "/fetchAllCourse";
+
+	public static final String FETCH_COURSE = "/getCourse/{id}";
+
+	/*
+	 * Course Schedule Data
+	 */
+
+	public static final String SAVE_COURSE_SCHEDULE = "/saveCourseSchedule";
+
+	public static final String UPDATE_COURSE_SCHEDULE = "/updateCourseSchedule";
+
+	public static final String FETCH_COURSE_SCHEDULE = "/getCourseSchedule/{id}";
+
+	public static final String FETCH_ALL_COURSE_SCHEDULE = "/getallCourseSchedule";
+
+	public static final String DELETE_COURSE_SCHEDULE = "/deleteCourseSchedule/{id}";
+
+	/*
+	 * Course Attendee Data
+	 */
+
+	public static final String SAVE_COURSE_ATTENDEE = "/saveCourseAttendee";
+
+	public static final String UPDATE_COURSE_ATTENDEE = "/updateCourseAttendee";
+
+	public static final String FETCH_COURSE_ATTENDEE = "/getCourseAttendee/{id}";
+
+	public static final String FETCH_ALL_COURSE_ATTENDEE = "/getallCourseAttendee";
+
+	public static final String DELETE_COURSE_ATTENDEE = "/deleteCourseAttendee/{id}";
+	
+	/*
+	 * Module Data
+	 */
+
+	public static final String SAVE_MODULE = "/saveModule";
+
+	public static final String UPDATE_MODULE = "/updateModule";
+
+	public static final String FETCH_MODULE = "/getModule/{id}";
+
+	public static final String FETCH_ALL_MODULE = "/getallModule";
+
+	public static final String DELETE_MODULE = "/deleteModule/{id}";
+	
+	/*
+	 * Module Data
+	 */
+
+	public static final String SAVE_MODSECTION = "/saveModSection";
+
+	public static final String UPDATE_MODSECTION = "/updateModSection";
+
+	public static final String FETCH_MODSECTION = "/getModSection/{id}";
+
+	public static final String FETCH_ALL_MODSECTION = "/getallModSection";
+
+	public static final String DELETE_MODSECTION = "/deleteModSection/{id}";
+}

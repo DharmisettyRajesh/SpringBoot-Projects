@@ -1,0 +1,62 @@
+package com.mss.cram.repository;
+
+import static com.mss.cram.constants.CramAppConstants.DATA_LAYER_EXP_IN_FETCHING_ACCOUNT;
+import static com.mss.cram.constants.CramAppConstants.DATA_LAYER_EXP_IN_SAVE_ACCOUNT;
+
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.mss.cram.exceptions.CramDataAccessLayerException;
+import com.mss.cram.model.Account;
+import com.mss.cram.model.Test;
+import com.mss.cram.util.CramUtil;
+
+@Repository
+public class TestRepo {
+	@Autowired
+	private NamedParameterJdbcTemplate sqlJdbcTemplate;
+
+	@Autowired
+	private Properties testQueriesProp;
+	@Autowired
+	private CramUtil cramutil;
+	
+	private static final Logger logger = LogManager.getLogger(Test.class);
+	public int insertTestRec(Test test) {
+		String sql = testQueriesProp.getProperty("SAVE_TEST");
+		int testaddResponse = 0;
+		try {
+			testaddResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(test));
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_SAVE_ACCOUNT + ":: {}", e.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_SAVE_ACCOUNT, e);
+		}
+		return testaddResponse;
+	}
+	
+	public List<Test> fetchAccountById(int id) {
+		String sql = testQueriesProp.getProperty("GET_TEST");
+		List<Test> testList = null;
+		
+		try {
+
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			testList = sqlJdbcTemplate.query(sql, params,
+
+					(rs, rowNum) -> new Test(rs.getString("a.type"), rs.getString("a.name"),rs.getInt("a.id")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT + ":: {}", ex.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT, ex);
+		}
+		return testList;
+
+}

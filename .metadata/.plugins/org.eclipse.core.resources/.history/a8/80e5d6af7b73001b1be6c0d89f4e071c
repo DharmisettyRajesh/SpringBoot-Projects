@@ -1,0 +1,29 @@
+package com.mss.cram.model;
+
+public class Test {
+
+	private String name;
+	private String contract;
+	public Test(String name, String contract) {
+		super();
+		this.name = name;
+		this.contract = contract;
+	}
+	public Test() {
+		super();
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getContract() {
+		return contract;
+	}
+	public void setContract(String contract) {
+		this.contract = contract;
+	}
+	
+	
+}

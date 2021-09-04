@@ -1,0 +1,33 @@
+package com.jpa.demo.restTemplateDemo;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jpa.demo.Person;
+
+@RestController
+public class Demo23 {
+	
+	@GetMapping("/test/") 
+	public List<Person> getAll()
+	{
+		ObjectMapper om=new ObjectMapper();
+		RestTemplate obj=new RestTemplate();
+		//CurrencyDTO[] forObject = new ObjectMapper.readValue(restTemplate.getForEntity("http://api.nbp.pl/api/exchangerates/tables/a/", CurrencyDTO[].class).getBody() , new TypeReference<List<CurrencyDTO>>() {}).get(0);
+		Person[] forObject = obj.getForEntity("http://localhost:9090/getall", Person[].class).getBody();//,new TypeReference<List<Person>>() {}).get(0);
+		List<Person> lp=[]; 
+		for(Person p:forObject)
+		{
+			lp.add(p);
+		}
+		return lp;
+	} 
+	
+	
+
+}

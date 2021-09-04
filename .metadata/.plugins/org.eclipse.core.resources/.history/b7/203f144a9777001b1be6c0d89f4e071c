@@ -1,0 +1,103 @@
+package com.mss.cm.model;
+
+public class Location {
+
+	private int id;
+	private String name;
+	private String country;
+	private String addressLine;
+	private String village;
+	private String mandal;
+	private String district;
+	private String State;
+	private String zip;
+	private String Orgid;
+	private int objectId;
+	
+	
+	public Location(int id, String name, String country, String addressLine, String village, String mandal,
+			String district, String state, String zip, String orgid, int objectId) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.country = country;
+		this.addressLine = addressLine;
+		this.village = village;
+		this.mandal = mandal;
+		this.district = district;
+		State = state;
+		this.zip = zip;
+		Orgid = orgid;
+		this.objectId = objectId;
+	}
+	public int getObjectId() {
+		return objectId;
+	}
+	public void setObjectId(int objectId) {
+		this.objectId = objectId;
+	}
+	public void setMandal(String mandal) {
+		this.mandal = mandal;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	public String getAddressLine() {
+		return addressLine;
+	}
+	public void setAddressLine(String addressLine) {
+		this.addressLine = addressLine;
+	}
+	public String getVillage() {
+		return village;
+	}
+	public void setVillage(String village) {
+		this.village = village;
+	}
+	public String getMandal() {
+		return mandal;
+	}
+	public void setManadal(String mandal) {
+		this.mandal = mandal;
+	}
+	public String getDistrict() {
+		return district;
+	}
+	public void setDistrict(String district) {
+		this.district = district;
+	}
+	public String getState() {
+		return State;
+	}
+	public void setState(String state) {
+		State = state;
+	}
+	public String getZip() {
+		return zip;
+	}
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
+	public String getOrgid() {
+		return Orgid;
+	}
+	public void setOrgid(String orgid) {
+		Orgid = orgid;
+	}
+	
+}

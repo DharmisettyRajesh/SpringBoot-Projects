@@ -1,0 +1,150 @@
+package com.mss.cm.repository;
+
+import static com.mss.cm.constants.CmAppConstants.*; 
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+import com.mss.cm.constants.CmAppConstants;
+import com.mss.cm.exceptions.CmDataAccessLayerException;
+import com.mss.cm.model.Activity;
+import com.mss.cm.util.CramUtil;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
+@Repository
+public class ActivityRepository {
+
+	@Autowired
+	private NamedParameterJdbcTemplate sqlJdbcTemplate;
+
+	
+	@Autowired
+	private JdbcTemplate jdbc;
+
+	@Autowired
+	private Properties activityQueriesProp;
+	
+	@Autowired
+	private CramUtil cramutil;
+
+	private static final Logger logger = LogManager.getLogger(ActivityRepository.class);
+
+	public int insertActivity(Activity Activity) {
+		String sql = activityQueriesProp.getProperty("INSERT_ACTIVITY");
+		int updateResponse = 0;
+		try {
+			updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(Activity));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_INSERT_ACTIVITY + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_INSERT_ACTIVITY, ex);
+		}
+		return updateResponse;
+	}
+
+	 public List<Activity> getAllActivity(Activity Activity) {
+		 List activitylist = null;
+			Map finalMap = new HashMap();
+			List responseList = new ArrayList();
+		 String sql = activityQueriesProp.getProperty("GET_ALL_ACTIVITY");
+		 String count=activityQueriesProp.getProperty("FETCH_ALL_ACTIVITY_COUNT");
+		 String serachFilterQuery = getFilterQuery(Activity);
+			if (StringUtils.isNotBlank(serachFilterQuery)) {
+				count=count+serachFilterQuery;
+				System.out.println(count);
+			}
+			int offset = (Activity.getPageNum() - 1) * Activity.getPageSize();
+			serachFilterQuery = serachFilterQuery + " LIMIT " + Activity.getPageSize() + " OFFSET " + offset;
+			
+		 List<Activity> activityList = null;
+		 try {
+			 activitylist = jdbc.queryForList(count);
+				Map m=(Map) (activitylist.get(0));
+				activityList = sqlJdbcTemplate.query(sql+serachFilterQuery,
+		 (rs, rowNum) -> new Activity(rs.getInt("id"),
+					rs.getString("activityType"), rs.getString("description"), rs.getString("accountName"),rs.getString("contactName"),
+					rs.getString("endDate"),rs.getString("startDate"),rs.getString("createdDate")));
+		 
+		 finalMap.put("data", activityList);
+			finalMap.put("count", m.get("count"));
+			responseList.add(finalMap);
+		 } catch (Exception ex) {
+		 logger.error(DATA_LAYER_EXP_IN_FETCH_COURSE + ":: {}", ex.getMessage());
+		 throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCH_COURSE, ex);
+		 }		 
+		 return responseList;
+
+		 }
+	
+	
+	
+	private String getFilterQuery(Activity Activity) {
+
+		List<Object[]> filter = new ArrayList();
+
+		if (StringUtils.isNotBlank(Activity.getActivityType()))
+			filter.add(new Object[] { "activityType", Activity.getActivityType(), CmAppConstants.STRING_TYPE, "LIKE" });
+        
+		if (StringUtils.isNotBlank(Activity.getAccountName()))
+			filter.add(new Object[] { "accountName", Activity.getAccountName(), CmAppConstants.STRING_TYPE, "LIKE" });
+		
+		if (StringUtils.isNotBlank(Activity.getStartDate()))
+			filter.add(new Object[] { "startDate", Activity.getStartDate(), CmAppConstants.STRING_TYPE, " LIKE " });
+		if (StringUtils.isNotBlank(Activity.getEndDate()))
+			filter.add(new Object[] { "endDate", Activity.getEndDate(), CmAppConstants.STRING_TYPE, " LIKE " });
+
+		return cramutil.getFilter(filter);
+	}
+	
+	public List<Activity> getByIdActivity(int id) {
+		String sql = activityQueriesProp.getProperty("GET_ACTIVITY");
+		List<Activity> contactList = null;
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			contactList = sqlJdbcTemplate.query(sql, params, (rs, rowNum) -> new Activity(rs.getInt("id"),
+					rs.getString("activityType"), rs.getString("description"), rs.getString("accountName"),rs.getString("contactName"),
+					rs.getString("endDate"),rs.getString("startDate"),rs.getString("createdDate")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCH_ACTIVITY_BYID + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCH_ACTIVITY_BYID, ex);
+		}
+		return contactList;
+	}
+	public int updateActivity(Activity Activity) {
+		String sql = activityQueriesProp.getProperty("UPDATE_ACTIVITY");
+		int updateResponse = 0;
+		try {
+			updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(Activity));
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_UPDATING_ACTIVITY + ":: {}", e.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_UPDATING_ACTIVITY, e);
+		}
+		return updateResponse;
+	}
+
+	public int deleteActivity(int id) {
+		String sql = activityQueriesProp.getProperty("DELETE_ACTIVITY");
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			return sqlJdbcTemplate.update(sql, params);
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_DELETE_ACTIVITY + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_DELETE_ACTIVITY, ex);
+		}
+
+	}
+}

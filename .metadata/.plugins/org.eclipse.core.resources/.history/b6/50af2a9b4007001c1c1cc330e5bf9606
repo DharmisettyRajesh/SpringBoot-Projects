@@ -1,0 +1,19 @@
+package demo;
+
+import java.util.*;
+public class Optionaldemo { 
+	public static void main(String args[])
+	{
+		String s[]=new String[10];
+		Optional<String> demo=Optional.of(s[2]); 
+		if(demo.isPresent())
+		{
+			System.out.println("hello");
+		}
+		else
+		{
+			System.out.println("value present");
+		}
+	}
+
+}

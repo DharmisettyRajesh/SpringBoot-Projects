@@ -1,0 +1,24 @@
+package com.jpa.demo.restTemplateDemo;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.jpa.demo.Person;
+
+@RestController
+public class Demo23 {
+	
+	@GetMapping("/test/") 
+	public String getAll()
+	{
+		RestTemplate obj=new RestTemplate();
+		String p=obj.getForObject("http://localhost:9090/getall",String.class);
+		return p;
+	} 
+	
+	
+
+}

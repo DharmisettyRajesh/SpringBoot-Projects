@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aop-reference-model>
+<aop-project name="crm_app"/>
+<aop-project name="test"/>
+<aop-project name="sdm_api_dev"/>
+<aop-project name="JPA-Project"/>
+<aop-project name="sdm_api"/>
+</aop-reference-model>

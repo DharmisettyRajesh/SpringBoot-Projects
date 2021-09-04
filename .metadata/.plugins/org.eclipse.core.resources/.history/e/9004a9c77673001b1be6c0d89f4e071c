@@ -1,0 +1,203 @@
+package com.mss.cram.constants;
+
+import static com.mss.cram.constants.CramAppConstants.DATA_LAYER_EXP_IN_FETCH_CONTACTS;
+
+public final class CramAppConstants {
+
+	public static final String QUERY_FILE_NAME = "query.xml";
+
+	public static final String CONTACT_SAVED_MSG = "Contact Saved SuccessFully";
+
+	public static final String CONTACT_DELETED_MSG = "Contact Delete SuccessFully";
+
+	public static final String CONTACT_SAVED_FAILED_MSG = "Failed in validation of creating contact";
+
+	public static final String DATA_LAYER_EXP_IN_FETCH_CONTACTS = "Exception in data access layer while fetching contacts";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_CONTACTS = "Exception in data access layer while saving contacts";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_CONTACTS = "Exception in data access layer while delete contacts";
+
+	public static final String CONTACTID_VALIDATION_MSG = "ContactId mandatory for  Deleting the contact";
+
+	/*
+	 * Constants of Account
+	 */
+
+	public static final String ACCOUNT_SAVED_MSG = "Account Saved SuccessFully";
+
+	public static final String ACCOUNT_UPDATED_MSG = "Account updated Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_ACCOUNT = "Exception in data access layer while saving Account";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_ACCOUNT = "Exception in data access layer while updating Account";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_ACCOUNT = "Exception in data access layer while fetching Account by id";
+
+	public static final String ACCOUNT_DELETE_MSG = "Account delete Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_ACCOUNT = "Exception in data access layer while delete Account";
+
+	/*
+	 * Data of Lookup
+	 */
+
+	public static final String COUNTRY_LOOKUP = "";
+
+	/*
+	 * Data of CONTACT1
+	 */
+
+	public static final String CONTACT1_SAVED_MSG = "Contact1 Saved SuccessFully";
+
+	public static final String CONTACT1_UPDATED_MSG = "Contact1 updated Successfully";
+
+	public static final String CONTACT1_DELETED_MSG = "Contact1 Delete SuccessFully";
+
+	public static final String DATA_LAYER_EXP_IN_FETCH_CONTACT1 = "Exception in data access layer while fetching Contact1";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_CONTACT1 = "Exception in data access layer while saving Contact1";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_CONTACT1 = "Exception in data access layer while updating Contact1";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_CONTACT1 = "Exception in data access layer while delete Contact1";
+
+	public static final String CONTACT1_SAVED_FAILED_MSG = "Failed in validation of creating Contact1";
+
+	public static final String CONTACT1ID_VALIDATION_MSG = "Id mandatory for  Deleting the Contact1";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_CONTACTID1 = "Exception in data access layer while fetching Contact1 by id";
+
+	/*
+	 * Search functionality
+	 */
+
+	public static final int STRING_TYPE = 1;
+	public static final int INTEGER_TYPE = 2;
+	public static final int FLOAT_TYPE = 3;
+	public static final int DOUBLE_TYPE = 4;
+	public static final int DATE_TYPE = 5;
+	public static final int LIST_TYPE = 6;
+
+	/*
+	 * Data of CONTACT1
+	 */
+
+	public static final String ACTIVITY_INSERT_MSG = "Activity Inserted SuccessFully";
+
+	public static final String ACTIVITY_INSERT_FAILED_MSG = "Failed in validation of creating Activity";
+
+	public static final String DATA_LAYER_EXP_IN_INSERT_ACTIVITY = "Exception in data access layer while saving Activity";
+
+	public static final String DATA_LAYER_EXP_IN_GET_ALL_ACTIVITY = "Exception in data access layer while fetching Activity";
+
+	public static final String ACTIVITY_UPDATED_MSG = "Contact1 updated Successfully";
+
+	public static final String ACTIVITY_DELETED_MSG = "Contact1 Delete SuccessFully";
+
+	public static final String DATA_LAYER_EXP_IN_FETCH_ACTIVITY = "Exception in data access layer while fetching Activity";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_ACTIVITY = "Exception in data access layer while updating Activity";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_ACTIVITY = "Exception in data access layer while delete Activity";
+
+	public static final String ACTIVITYID_VALIDATION_MSG = "Id mandatory for  Deleting the Activity";
+
+	public static final String DATA_LAYER_EXP_IN_FETCH_ACTIVITY_BYID = "Exception in data access layer while fetching Activity by id";
+
+	/*
+	 * Data of COURSE
+	 */
+
+	public static final String COURSE_SAVED_MSG = "Course Saved SuccessFully";
+
+	public static final String COURSE_UPDATED_MSG = "Course updated Successfully";
+
+	public static final String COURSE_DELETED_MSG = "Course Delete SuccessFully";
+
+	public static final String DATA_LAYER_EXP_IN_FETCH_COURSE = "Exception in data access layer while fetching Course";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_COURSE = "Exception in data access layer while saving Course";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_COURSE = "Exception in data access layer while updating Course";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_COURSE = "Exception in data access layer while delete Course";
+
+	public static final String COURSE_SAVED_FAILED_MSG = "Failed in validation of creating Course";
+
+	public static final String COURSEID_VALIDATION_MSG = "Id mandatory for  Deleting the Course";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_COURSEID = "Exception in data access layer while fetching Course by id";
+
+	/*
+	 * COurse Schedule
+	 */
+
+	public static final String COURSE_SCHEDULE_SAVED_MSG = "Course Schedule Saved SuccessFully";
+
+	public static final String COURSE_SCHEDULE_UPDATED_MSG = "Course Schedule updated Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_COURSE_SCHEDULE = "Exception in data access layer while saving Course Schedule";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_COURSE_SCHEDULE = "Exception in data access layer while updating Course Schedule";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_COURSE_SCHEDULE = "Exception in data access layer while fetching Course Schedule by id";
+
+	public static final String COURSE_SCHEDULE_DELETE_MSG = "Course Schedule delete Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_COURSE_SCHEDULE = "Exception in data access layer while delete Course Schedule";
+
+	/*
+	 * Course Attendee
+	 */
+
+	public static final String COURSE_ATTENDEE_SAVED_MSG = "Course Attendee Saved SuccessFully";
+
+	public static final String COURSE_ATTENDEE_UPDATED_MSG = "Course Attendee updated Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_COURSE_ATTENDEE = "Exception in data access layer while saving Course Attendee";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_COURSE_ATTENDEE = "Exception in data access layer while updating Course Attendee";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_COURSE_ATTENDEE = "Exception in data access layer while fetching Course Attendee by id";
+
+	public static final String COURSE_ATTENDEE_DELETE_MSG = "Course Attendee delete Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_COURSE_ATTENDEE = "Exception in data access layer while delete Course Attendee";
+
+	/*
+	 * Module
+	 */
+
+	public static final String MODULE_SAVED_MSG = "Module Saved SuccessFully";
+
+	public static final String MODULE_UPDATED_MSG = "Module updated Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_MODULE = "Exception in data access layer while saving Module";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_MODULE = "Exception in data access layer while updating Module";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_MODULE = "Exception in data access layer while fetching Module by id";
+
+	public static final String MODULE_DELETE_MSG = "Module delete Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_MODULE = "Exception in data access layer while delete Module";
+	
+	/*
+	 * Mod Section
+	 */
+
+	public static final String MODSECTION_SAVED_MSG = "Mod Section Saved SuccessFully";
+
+	public static final String MODSECTION_UPDATED_MSG = "Mod Section updated Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_SAVE_MODSECTION = "Exception in data access layer while saving Mod Section";
+
+	public static final String DATA_LAYER_EXP_IN_UPDATING_MODSECTION = "Exception in data access layer while updating Mod Section";
+
+	public static final String DATA_LAYER_EXP_IN_FETCHING_MODSECTION = "Exception in data access layer while fetching Mod Section by id";
+
+	public static final String MODSECTION_DELETE_MSG = "Mod Section delete Successfully";
+
+	public static final String DATA_LAYER_EXP_IN_DELETE_MODSECTION = "Exception in data access layer while delete Mod Section";
+}

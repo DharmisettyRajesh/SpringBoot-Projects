@@ -1,0 +1,257 @@
+package com.mss.cm.repository;
+
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_DELETE_CONTACT1;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_FETCHING_CONTACTID1;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_FETCH_CONTACT1;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_SAVE_CONTACT1;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_UPDATING_CONTACT1;
+import static com.mss.cm.constants.CmAppConstants.DATA_LAYER_EXP_IN_SAVE_CONTACT_AND_ADDRESS;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+
+import com.mss.cm.constants.CmAppConstants;
+import com.mss.cm.exceptions.CmDataAccessLayerException;
+import com.mss.cm.model.Contact1;
+import com.mss.cm.model.Location;
+import com.mss.cm.util.CramUtil;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
+@Repository
+public class Contact1Repository {
+
+	@Autowired
+	private NamedParameterJdbcTemplate sqlJdbcTemplate;
+
+	@Autowired
+	private Properties contact1QueriesProp;
+
+	@Autowired
+	private CramUtil cramutil;
+
+	private static final Logger logger = LogManager.getLogger(Contact1Repository.class);
+
+	public List<Contact1> fetchAllContact1(Contact1 Contact1) {
+		String sql = contact1QueriesProp.getProperty("FETCH_ALL_CONTACT1");
+
+		String serachFilterQuery = getFilterQuery(Contact1);
+		if (StringUtils.isNotBlank(serachFilterQuery)) {
+			System.out.println(Contact1.getFirstName());
+			sql = sql + serachFilterQuery;
+			
+			
+
+		}
+		String fullName =null;
+		if(Contact1.getFirstName() != null && !"".equals(Contact1.getFirstName())){
+			fullName= " AND (firstName LIKE '%" + Contact1.getFirstName()
+			+ "%' or middleName like '%" + Contact1.getFirstName() + "%' or lastName like '%"
+			+ Contact1.getFirstName() + "%' or "
+			+ " CONCAT(firstName,' ', lastName,' ',middleName) like '%"
+			+ Contact1.getFirstName() + "%' or CONCAT(firstName,' ', middleName) like '%" + Contact1.getFirstName()
+			+ "%' or CONCAT(firstName,' ',lastName) like '%" + Contact1.getFirstName() + "%')";
+			sql=sql+fullName;
+		}
+		List<Contact1> contactList = null;
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("accountId", Contact1.getAccountId());
+			contactList = sqlJdbcTemplate.query(sql,params, (rs, rowNum) -> new Contact1(rs.getInt("id"),rs.getInt("accountId"),
+					rs.getString("contactStatus"),rs.getString("loginId"),rs.getString("password"),rs.getString("lastName"),
+					rs.getString("firstName"),rs.getString("middleName"),rs.getString("title"),rs.getString("gender"),rs.getString("dob"),
+					rs.getString("doa"),rs.getString("areaSpecialization"),rs.getString("homePhone"),rs.getString("officePhone"),
+					rs.getString("cellPhone"),rs.getString("email1"),rs.getString("email2"),rs.getString("referredBy"),rs.getString("createdBy"),
+					rs.getString("createdDate"),rs.getString("modifiedBy"),rs.getString("modifiedDate"),rs.getString("dontSendEmail"),rs.getString("linkedIn"),
+					rs.getString("department"),rs.getString("reportsTo"),rs.getInt("departmentId"),rs.getString("shiftStartTime"),rs.getString("shiftEndTime"),
+					rs.getInt("hId")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCH_CONTACT1 + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCH_CONTACT1, ex);
+		}
+		return contactList;
+	}
+
+	private String getFilterQuery(Contact1 Contact1) {
+
+		List<Object[]> filter = new ArrayList();
+
+		if (StringUtils.isNotBlank(Contact1.getTitle()))
+			filter.add(new Object[] { "title", Contact1.getTitle(), CmAppConstants.STRING_TYPE, "LIKE" });
+		if (StringUtils.isNotBlank(Contact1.getContactStatus()))
+			filter.add(new Object[] { "contactStatus", Contact1.getContactStatus(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		if (StringUtils.isNotBlank(Contact1.getEmail1()))
+			filter.add(new Object[] { "email1", Contact1.getEmail1(), CmAppConstants.STRING_TYPE, "LIKE" });
+		if (StringUtils.isNotBlank(Contact1.getCellPhone()))
+			filter.add(new Object[] { "cellPhone", Contact1.getCellPhone(), CmAppConstants.STRING_TYPE, "LIKE" });
+
+		
+
+		return cramutil.getFilter(filter);
+	}
+	public int saveContact1(Contact1 Contact1) {
+		String sql = contact1QueriesProp.getProperty("SAVE_CONTACT1");
+		int updateResponse = 0;
+		try {
+			System.out.println("110");
+			updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(Contact1));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_SAVE_CONTACT1 + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_SAVE_CONTACT1, ex);
+		}
+		return updateResponse;
+	}
+
+	public int updateContact1(Contact1 Contact1) {
+		String sql = contact1QueriesProp.getProperty("UPDATE_CONTACT1");
+		int updateResponse = 0;
+//		int updateTblcrContactResponse = 0;
+		try {
+			System.out.println(sql);
+			updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(Contact1));
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_UPDATING_CONTACT1 + ":: {}", e.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_UPDATING_CONTACT1, e);
+		}
+		return updateResponse;
+	}
+
+	public int deleteContact1(int id) {
+		String sql = contact1QueriesProp.getProperty("DELETE_CONTACT1");
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			return sqlJdbcTemplate.update(sql, params);
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_DELETE_CONTACT1 + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_DELETE_CONTACT1, ex);
+		}
+
+	}
+
+	public List<Contact1> getByIdContact1(int id) {
+		String sql = contact1QueriesProp.getProperty("FETCH_CONTACT1");
+		List<Contact1> contactList = null;
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			contactList = sqlJdbcTemplate.query(sql, (rs, rowNum) -> new Contact1(rs.getInt("id"),rs.getInt("accountId"),
+					rs.getString("contactStatus"),rs.getString("loginId"),rs.getString("password"),rs.getString("lastName"),
+					rs.getString("firstName"),rs.getString("middleName"),rs.getString("title"),rs.getString("gender"),rs.getString("dob"),
+					rs.getString("doa"),rs.getString("areaSpecialization"),rs.getString("homePhone"),rs.getString("officePhone"),
+					rs.getString("cellPhone"),rs.getString("email1"),rs.getString("email2"),rs.getString("referredBy"),rs.getString("createdBy"),
+					rs.getString("createdDate"),rs.getString("modifiedBy"),rs.getString("modifiedDate"),rs.getString("dontSendEmail"),rs.getString("linkedIn"),
+					rs.getString("department"),rs.getString("reportsTo"),rs.getInt("departmentId"),rs.getString("shiftStartTime"),rs.getString("shiftEndTime"),
+					rs.getInt("hId")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_CONTACTID1 + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_CONTACTID1, ex);
+		}
+		return contactList;
+	}
+	
+	public List<Contact1> getByIdContactAndAddress(int id) {
+		String sql = contact1QueriesProp.getProperty("FETCH_CONTACT1");
+		String sql1 = contact1QueriesProp.getProperty("FETCH_ADDRESS1");
+		List<Contact1> contactList = null;
+		List<Contact1> addressList = null;
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			contactList = sqlJdbcTemplate.query(sql, (rs, rowNum) -> new Contact1(rs.getInt("id"),rs.getInt("accountId"),
+					rs.getString("contactStatus"),rs.getString("loginId"),rs.getString("password"),rs.getString("lastName"),
+					rs.getString("firstName"),rs.getString("middleName"),rs.getString("title"),rs.getString("gender"),rs.getString("dob"),
+					rs.getString("doa"),rs.getString("areaSpecialization"),rs.getString("homePhone"),rs.getString("officePhone"),
+					rs.getString("cellPhone"),rs.getString("email1"),rs.getString("email2"),rs.getString("referredBy"),rs.getString("createdBy"),
+					rs.getString("createdDate"),rs.getString("modifiedBy"),rs.getString("modifiedDate"),rs.getString("dontSendEmail"),rs.getString("linkedIn"),
+					rs.getString("department"),rs.getString("reportsTo"),rs.getInt("departmentId"),rs.getString("shiftStartTime"),rs.getString("shiftEndTime"),
+					rs.getInt("hId")));
+			
+//			MapSqlParameterSource params1 = new MapSqlParameterSource();
+//			params.addValue("id", id);
+//			addressList = sqlJdbcTemplate.query(sql1, (row, rowNum) -> new Contact1(row.getInt("id")));
+			
+			
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_CONTACTID1 + ":: {}", ex.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_CONTACTID1, ex);
+		}
+		return contactList;
+	}
+	
+	public int saveContact1AndAddress(Contact1 contact1) {
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		String sql = contact1QueriesProp.getProperty("SAVE_CONTACT1");
+		String sql1 = contact1QueriesProp.getProperty("SAVE_ADDRESS1");
+		int addResponse = 0;
+		int addLocationResponse = 0;
+		List<Location> location = contact1.getLocation();
+		try {
+			System.out.println("174");
+			addResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(contact1), keyHolder);
+			System.out.println(addResponse);
+			int key = (int) keyHolder.getKey().intValue();
+			System.out.println("key"+key);
+			for (Location locations : location) {
+				MapSqlParameterSource params = new MapSqlParameterSource();
+				params.addValue("id", locations.getId()).addValue("objectType", locations.getObjectType()).addValue("objectId", key)
+						.addValue("addressType", locations.getAddressType()).addValue("addressLine1", locations.getAddressLine1())
+						.addValue("addressLine2", locations.getAddressLine2()).addValue("city", locations.getCity())
+						.addValue("state", locations.getState()).addValue("mailStop", locations.getMailStop()).addValue("zip", locations.getZip())
+						.addValue("country", locations.getCountry()).addValue("hId", locations.gethId());
+				addLocationResponse = sqlJdbcTemplate.update(sql1, params);
+			}
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_SAVE_CONTACT_AND_ADDRESS + ":: {}", e.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_SAVE_CONTACT_AND_ADDRESS, e);
+		}
+		return addResponse;
+	}
+	
+	
+	public int updateContactAndAddress(Contact1 contact1) {
+		
+		String sql = contact1QueriesProp.getProperty("UPDATE_CONTACT1");
+		String sql1 = contact1QueriesProp.getProperty("UPDATE_ADDRESS1");
+		int addResponse = 0;
+		int addLocationResponse = 0;
+		List<Location> location = contact1.getLocation();
+		try {
+			System.out.println("174");
+			addResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(contact1));
+			System.out.println(addResponse);
+			int key = (int) contact1.getId();
+			System.out.println("key"+key);
+			for (Location locations : location) {
+				MapSqlParameterSource params = new MapSqlParameterSource();
+				params.addValue("id", locations.getId()).addValue("objectType", locations.getObjectType()).addValue("objectId", key)
+						.addValue("addressType", locations.getAddressType()).addValue("addressLine1", locations.getAddressLine1())
+						.addValue("addressLine2", locations.getAddressLine2()).addValue("city", locations.getCity())
+						.addValue("state", locations.getState()).addValue("mailStop", locations.getMailStop()).addValue("zip", locations.getZip())
+						.addValue("country", locations.getCountry()).addValue("hId", locations.gethId());
+				addLocationResponse = sqlJdbcTemplate.update(sql1, params);
+			}
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_SAVE_CONTACT_AND_ADDRESS + ":: {}", e.getMessage());
+			throw new CmDataAccessLayerException(DATA_LAYER_EXP_IN_SAVE_CONTACT_AND_ADDRESS, e);
+		}
+		return addResponse;
+	}
+
+
+	
+}

@@ -1,0 +1,27 @@
+package com.jpa.demo.restTemplateDemo;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jpa.demo.Person;
+
+@RestController
+public class Demo23 {
+	
+	@GetMapping("/test/") 
+	public Person getAll()
+	{
+		ObjectMapper obj1=new ObjectMapper();
+		RestTemplate obj=new RestTemplate();
+		@SuppressWarnings("unchecked")
+		Person p=obj.getForObject("http://localhost:9090/getall",Person.class);
+		return p;
+	} 
+	
+	
+
+}

@@ -1,0 +1,30 @@
+server:
+  port: 8086
+  servlet:
+    context-path: "/cm_app"
+
+spring:
+  profiles:
+    active: "LOCAL"
+  datasource:
+    password: ${environment.password}
+    url: ${environment.url}
+    username: ${environment.username}
+       
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+---
+spring:
+  profiles: "LOCAL"
+environment:
+  full: "LOCAL"
+  password: cmuser@2k21
+  url: jdbc:mysql://172.17.0.170:3306/cm?zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+  username: cmuser 
+
+---
+spring:
+  profiles: "DEV"

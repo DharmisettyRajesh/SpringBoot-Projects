@@ -1,0 +1,462 @@
+
+package com.mss.sdm.projectreleases;
+
+import java.sql.Date;
+import java.sql.Timestamp;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Service;
+
+import com.mss.sdm.meetingattendees.MeetingsAttendees;
+import com.mss.sdm.projecttasks.ProjectTask;
+import com.mss.sdm.tblprojects.TblProjects;
+
+/**
+ * *****************************************************************************
+ * Date : 17 Aug 2020
+ *
+ * Author: smagisetty
+ *
+ * ForUse : ProjectReleasesDao class is used to perform database operations
+ * 
+ * *****************************************************************************
+ */
+@Service
+public class ProjectReleasesDao {
+
+	private static final Logger log = LoggerFactory.getLogger(ProjectReleasesDao.class);
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+	int keyId = 0;
+
+	public Map<String, String> insertReleases(ProjectReleases releases) {
+		String taskIds = releases.getAssociatedTask();
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		log.info("Entered into ProjectReleasesDao insertReleases method");
+		Map<String, String> data = new HashMap<String, String>();
+		int result = 0;
+		String associatedTask = releases.getAssociatedTask();
+		KeyHolder key = new GeneratedKeyHolder();
+		String sql = "INSERT INTO projectreleases (ProjectId,StartTaskId,EndTaskId,ReleaseStartDate,ReleaseEndDate,ReleaseTag,SeqNo,Description,"
+				+ "CreatedBy,ModifiedDate,ModifiedBy,Version,Status, AssociatedTask) "
+				+ "VALUES (:ProjectId,:StartTaskId,:EndTaskId,:ReleaseStartDate,:ReleaseEndDate,:ReleaseTag,:SeqNo,:Description,"
+				+ ":CreatedBy,:ModifiedDate,:ModifiedBy,:Version,:Status,:AssociatedTask)";
+		try {
+			SqlParameterSource parameters = new MapSqlParameterSource().addValue("ProjectId", releases.getProjectId())
+					.addValue("StartTaskId", releases.getEndTaskId()).addValue("EndTaskId", releases.getEndTaskId())
+					.addValue("ReleaseStartDate", releases.getReleaseStartDate())
+					.addValue("ReleaseEndDate", releases.getReleaseEndDate())
+					.addValue("ReleaseTag", releases.getReleaseTag()).addValue("SeqNo", releases.getSeqNo())
+					.addValue("Description", releases.getDescription()).addValue("CreatedBy", releases.getCreatedBy())
+					.addValue("ModifiedDate", releases.getModifiedDate())
+					.addValue("ModifiedBy", releases.getModifiedBy()).addValue("Version", releases.getVersion())
+					.addValue("Status", releases.getStatus()).addValue("AssociatedTask", releases.getAssociatedTask());
+			result = namedParameterJdbcTemplate.update(sql, parameters, key);
+			keyId = key.getKey().intValue();
+			if (taskIds != null && taskIds != "") {
+				List<String> taskIdsList = Arrays.asList(taskIds.split(","));
+				for (int i = 0; i < taskIdsList.size(); i++) {
+					String sqlupdate = "update projecttasks set ReleaseId=? where Id=?";
+					jdbcTemplate.update(sqlupdate, keyId, taskIdsList.get(i));
+				}
+			}
+			if (result > 0)
+				data.put("success", "Record inserted successfully");
+			else
+				data.put("failed", "Record failed to insert, please try again!");
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao insertReleases" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao insertReleases method with response===>" + data);
+		return data;
+	}
+
+	public Map<String, String> updateReleases(ProjectReleases releases) {
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		log.info("Entered into ProjectReleasesDao updateReleases method");
+		Map<String, String> data = new HashMap<String, String>();
+		int result = 0;
+		String sql = "update projectreleases set ProjectId=?,StartTaskId=?,EndTaskId=?,ReleaseStartDate=?,ReleaseEndDate=?,ReleaseTag=?,SeqNo=?,Description=?,Version=?,Status=?,"
+				+ "CreatedBy=?,ModifiedDate=?,ModifiedBy=? ,AssociatedTask=? ,ActualReleaseDate=? where Id=?";
+		try {
+			List<String> databaseData = new LinkedList<>(Arrays.asList(jdbcTemplate
+					.queryForObject("select AssociatedTask from projectreleases where id=" + releases.getId(),
+							String.class)
+					.split(",")));
+			result = jdbcTemplate.update(sql, releases.getProjectId(), releases.getStartTaskId(),
+					releases.getEndTaskId(), releases.getReleaseStartDate(), releases.getReleaseEndDate(),
+					releases.getReleaseTag(), releases.getSeqNo(), releases.getDescription(), releases.getVersion(),
+					releases.getStatus(), releases.getCreatedBy(), timestamp, releases.getModifiedBy(),
+					releases.getAssociatedTask(), releases.getActualReleaseDate(), releases.getId());
+
+			List<String> FrontendData = null;
+			FrontendData = new LinkedList<>(Arrays.asList(releases.getAssociatedTask().split(",")));
+			if (databaseData.equals(FrontendData)) {
+
+			} else {
+				List<String> temporary = databaseData;
+				temporary.removeAll(FrontendData);
+				if ((!temporary.get(0).equals("")) && temporary != null) {
+					for (String temp : temporary) {
+						jdbcTemplate.update("update projecttasks set releaseid=null where id=" + temp);
+					}
+				}
+				List<String> tempf = FrontendData;
+				tempf.removeAll(databaseData);
+				if ((!tempf.get(0).equals("")) && tempf != null) {
+					for (String temp1 : tempf) {
+						jdbcTemplate
+								.update("update projecttasks set releaseid=" + releases.getId() + " where id=" + temp1);
+					}
+				}
+
+			}
+			if (result > 0)
+				data.put("success", "updated successfully");
+			else
+				data.put("failed", "updation failed");
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao updateReleases" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao updateReleases method with response===>" + data);
+		return data;
+	}
+
+	public Map getReleases(int id) {
+		log.info("Entered into ProjectReleasesDao getReleases method");
+		Map dataMap = new HashMap();
+		Map<String, String> data = new HashMap<String, String>();
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		String sql = "select Id,ProjectId,StartTaskId,EndTaskId,ReleaseStartDate,ReleaseEndDate,ReleaseTag,SeqNo,Description,"
+				+ "CreatedDate,CreatedBy,ModifiedDate,ModifiedBy,Version,Status,AssociatedTask from projectreleases where id =?";
+		try {
+			dataList = jdbcTemplate.queryForList(sql, id);
+			for (Map<String, Object> row : dataList) {
+				dataMap.put("Id", row.get("Id"));
+				dataMap.put("ProjectId", row.get("ProjectId"));
+				dataMap.put("StartTaskId", row.get("StartTaskId"));
+				dataMap.put("EndTaskId", row.get("EndTaskId"));
+				dataMap.put("ReleaseStartDate", row.get("ReleaseStartDate"));
+				dataMap.put("ReleaseEndDate", row.get("ReleaseEndDate"));
+				dataMap.put("ReleaseTag", row.get("ReleaseTag"));
+				dataMap.put("SeqNo", row.get("SeqNo"));
+				dataMap.put("Description", row.get("Description"));
+				dataMap.put("Version", row.get("Version"));
+				dataMap.put("Status", row.get("Status"));
+				dataMap.put("CreatedDate", row.get("CreatedDate"));
+				dataMap.put("CreatedBy", row.get("CreatedBy"));
+				dataMap.put("ModifiedDate", row.get("ModifiedDate"));
+				dataMap.put("ModifiedBy", row.get("ModifiedBy"));
+				dataMap.put("AssociatedTask", row.get("AssociatedTask"));
+
+			}
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao getReleases" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao getReleases method");
+		return dataMap;
+	}
+
+	/**
+	 * *****************************************************************************
+	 *
+	 * Author: arelli
+	 *
+	 *
+	 * ForUse : getallProjectReleses method used to fetchall the projectreleases
+	 * data from the database
+	 * 
+	 * *******************************************************************************
+	 */
+	public List getallProjectReleses(ProjectReleases projectreleases) {
+		log.info("Entered into ProjectReleasesDao getallProjectReleses method");
+		Map<String, String> data = new HashMap<String, String>();
+		int pageNum = projectreleases.getPageNum();
+		int pageSize = projectreleases.getPageSize();
+		String version = projectreleases.getVersion();
+		String status = projectreleases.getStatus();
+		Date startDate = projectreleases.getReleaseStartDate();
+		Date endDate = projectreleases.getReleaseEndDate();
+		int projectId = projectreleases.getProjectId();
+		String commomQuery = "";
+		String countQuery = "SELECT COUNT(projectreleases.id)  FROM projectreleases where ProjectId=" + projectId;
+
+		if (version != null && !"".equals(version))
+			commomQuery = commomQuery + " AND projectreleases.version LIKE '%" + version + "%' ";
+
+		if (status != null && !"".equals(status))
+			commomQuery = commomQuery + " AND projectreleases.status LIKE '%" + status + "%' ";
+
+		if ((startDate != null && !"".equals(startDate)) && (endDate == null || "".equals(endDate)))
+			commomQuery = commomQuery + " AND projectreleases.releaseStartDate LIKE'%" + startDate + "%' ";
+
+		if ((endDate != null && !"".equals(endDate)) && (startDate == null || "".equals(startDate)))
+			commomQuery = commomQuery + " AND projectreleases.releaseEndDate LIKE '%" + endDate + "%' ";
+
+		if ((endDate != null && !"".equals(endDate)) && (startDate != null && !"".equals(startDate)))
+			commomQuery = commomQuery + " AND projectreleases.releaseStartDate  between '" + startDate + "' and '"
+					+ endDate + " 23:59:59'";
+
+		String finalCountQuery = countQuery + commomQuery;
+
+		int taskCount = 0;
+
+		int offset = (pageNum - 1) * pageSize;
+		commomQuery = commomQuery + " LIMIT " + pageSize + " OFFSET " + offset;
+		Map dataMap = null;
+		int listCount = 0;
+		List<String> tasklist = null;
+		List responseList = new ArrayList();
+		List<Map> response = new ArrayList();
+//		 noOfTaskList= null;
+		Map<String, Object> finalMap = new HashMap<String, Object>();
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> dataList1 = new ArrayList<Map<String, Object>>();
+		String sql = "select * from projectreleases where ProjectId=" + projectId;
+		String dataquery = sql + commomQuery;
+		try {
+			taskCount = jdbcTemplate.queryForObject(finalCountQuery, new Object[] {}, Integer.class);
+			dataList = jdbcTemplate.queryForList(dataquery);
+			for (Map<String, Object> row : dataList) {
+				dataMap = new HashMap();
+				dataMap.put("Id", row.get("Id"));
+				dataMap.put("ProjectId", row.get("ProjectId"));
+				dataMap.put("StartTaskId", row.get("StartTaskId"));
+				dataMap.put("EndTaskId", row.get("EndTaskId"));
+				dataMap.put("ReleaseStartDate", row.get("ReleaseStartDate"));
+				dataMap.put("ReleaseEndDate", row.get("ReleaseEndDate"));
+				dataMap.put("ReleaseTag", row.get("ReleaseTag"));
+				dataMap.put("SeqNo", row.get("SeqNo"));
+				dataMap.put("Description", row.get("Description"));
+				dataMap.put("Version", row.get("Version"));
+				dataMap.put("Status", row.get("Status"));
+				dataMap.put("CreatedDate", row.get("CreatedDate"));
+				dataMap.put("CreatedBy", row.get("CreatedBy"));
+				dataMap.put("ModifiedDate", row.get("ModifiedDate"));
+				dataMap.put("ModifiedBy", row.get("ModifiedBy"));
+				dataMap.put("ActualReleaseDate", row.get("ActualReleaseDate"));
+				if (row.get("AssociatedTask") != null && row.get("AssociatedTask") != " ") {
+					String[] taskarray = row.get("AssociatedTask").toString().split(",");
+					int taskcount;
+					if (taskarray[0].length() != 0)
+						taskcount = taskarray.length;
+					else
+						taskcount = 0;
+					dataMap.put("noOfTasks", taskcount);
+				}
+				dataMap.put("AssociatedTask", row.get("AssociatedTask"));
+				responseList.add(dataMap);
+			}
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao getallProjectReleses method" + e.getMessage());
+		}
+		finalMap.put("count", taskCount);
+		finalMap.put("data", responseList);
+		response.add(finalMap);
+
+		log.info("Exit from ProjectReleasesDao getallProjectReleses method");
+		return response;
+	}
+
+	/**
+	 * *****************************************************************************
+	 *
+	 * Author: ckantu
+	 *
+	 * ForUse : deleteReleases method used to delete projectreleases data from the
+	 * database based on id
+	 * 
+	 * *****************************************************************************
+	 */
+	public Map<String, String> deleteReleases(int id) {
+		log.info("Entered into ProjectReleasesDao deleteReleases method");
+		Map<String, String> data = new HashMap<String, String>();
+		int updateResult = 0;
+		int deleteResult = 0;
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		String updateTasks = "update projecttasks set releaseId=null where releaseId=?";
+		String sql = "delete from projectreleases where id = ?";
+		try {
+			updateResult = jdbcTemplate.update(updateTasks, id);
+			deleteResult = jdbcTemplate.update(sql, id);
+			if (deleteResult > 0)
+				data.put("Result", "deleted Successfully");
+			else
+				data.put("Result", "deletion failed");
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao deleteReleases method" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao deleteReleases method");
+		return data;
+	}
+
+	/**
+	 * ****************************************************************************
+	 *
+	 * Author: ckantu
+	 *
+	 * ForUse : getReleaseTasks method used to get projectreleases data from the
+	 * database based on id
+	 * 
+	 * *****************************************************************************
+	 */
+	public List<Map> getReleaseTasks(ProjectTask task) {
+		log.info("Entered into ProjectReleasesDao getReleaseTasks method");
+		Map<String, String> data = new HashMap<String, String>();
+		Map<String, Object> dataMap = null;
+		List<Map> responseList = new ArrayList();
+		List<Map> response = new ArrayList();
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> completedList = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> pendingList = new ArrayList<Map<String, Object>>();
+		Map<String, Object> finalMap = new HashMap<String, Object>();
+
+		String sql = "select Id,Description,Name,Status from projecttasks where ReleaseId=? ";
+		String completed = "select Id,Description,Name,Status from projecttasks where ReleaseId=? and Status!='Completed'";
+		String pending = "select Id,Description,Name,Status from projecttasks where ReleaseId=? and Status='Completed'";
+
+		try {
+			dataList = jdbcTemplate.queryForList(sql, task.getReleaseId());
+			completedList = jdbcTemplate.queryForList(completed, task.getReleaseId());
+			pendingList = jdbcTemplate.queryForList(pending, task.getReleaseId());
+			int taskCount = dataList.size();
+			int pendingCount = pendingList.size();
+			int completedCount = completedList.size();
+
+			for (Map<String, Object> row : dataList) {
+
+				dataMap = new HashMap<String, Object>();
+				dataMap.put("Id", row.get("Id"));
+				dataMap.put("Description", row.get("Description"));
+				dataMap.put("Name", row.get("Name"));
+				dataMap.put("Status", row.get("Status"));
+				responseList.add(dataMap);
+			}
+			finalMap.put("Totalcount", taskCount);
+			finalMap.put("pendingCount", pendingCount);
+			finalMap.put("completedCount", completedCount);
+			finalMap.put("data", responseList);
+			response.add(finalMap);
+
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao getReleaseTasks method" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao getReleaseTasks method");
+		return response;
+	}
+	
+	
+	public List getProjectReleaseByProjectId(int projectId) {
+		
+		log.info("Entered into ProjectReleasesDao getReleases method");
+		Map data = new HashMap();
+		
+		Map<String, Object> dataMap=null;
+		List responseList = new ArrayList();
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		String sql = "select Id,ProjectId,StartTaskId,EndTaskId,ReleaseStartDate,ReleaseEndDate,ReleaseTag,SeqNo,Description,"
+				+ "CreatedDate,CreatedBy,ModifiedDate,ModifiedBy,Version,Status,AssociatedTask from projectreleases where ProjectId =?";
+		try {
+			dataList = jdbcTemplate.queryForList(sql, projectId);
+			for (Map<String, Object> row : dataList) {
+				dataMap = new HashMap<String, Object>();
+				dataMap.put("Id", row.get("Id"));
+				dataMap.put("ProjectId", row.get("ProjectId"));
+				dataMap.put("StartTaskId", row.get("StartTaskId"));
+				dataMap.put("EndTaskId", row.get("EndTaskId"));
+				dataMap.put("ReleaseStartDate", row.get("ReleaseStartDate"));
+				dataMap.put("ReleaseEndDate", row.get("ReleaseEndDate"));
+				dataMap.put("ReleaseTag", row.get("ReleaseTag"));
+				dataMap.put("SeqNo", row.get("SeqNo"));
+				dataMap.put("Description", row.get("Description"));
+				dataMap.put("Version", row.get("Version"));
+				dataMap.put("Status", row.get("Status"));
+				dataMap.put("CreatedDate", row.get("CreatedDate"));
+				dataMap.put("CreatedBy", row.get("CreatedBy"));
+				dataMap.put("ModifiedDate", row.get("ModifiedDate"));
+				dataMap.put("ModifiedBy", row.get("ModifiedBy"));
+				dataMap.put("AssociatedTask", row.get("AssociatedTask"));
+				responseList.add(dataMap);
+
+			}
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao getReleases" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao getReleases method");
+		
+		return responseList;
+	}
+
+public List getDataByreleaseId(int id) {
+		
+		log.info("Entered into ProjectReleasesDao getReleases method");
+		Map data = new HashMap();
+		
+		Map<String, Object> dataMap=null;
+		List responseList = new ArrayList();
+		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
+		String sql = "select 'projectissues' as Type, Title, managedBy, AssignedTo, TargetDate, PercentageComplete, UxStatus from projectissues union \n" + 
+				"select 'projectservicemanagements' as Type, Title, managedBy, AssignedTo, TargetDate, PercentageComplete, UxStatus from projectservicemanagements union \n" + 
+				"select 'changemanagement' as Type,Title, managedBy, AssignedTo, TargetDate, PercentageComplete, UxStatus from changemanagement union \n" + 
+				"select 'projecttasks' as Type,Name as Title, null as managedBy, AssignedTo, EndDate, null as PercentageComplete, status as UxStatus from projecttasks where releaseId=?" ;
+		try {
+			dataList = jdbcTemplate.queryForList(sql, id);
+			for (Map<String, Object> row : dataList) {
+				dataMap = new HashMap<String, Object>();
+				dataMap.put("Title", row.get("title"));
+				dataMap.put("Name", row.get("Name"));
+				dataMap.put("managedBy", row.get("managedBy"));
+				dataMap.put("AssignedTo", row.get("assignedTo"));
+				dataMap.put("TargetDate", row.get("targetDate"));
+				dataMap.put("EndDate", row.get("EndDate"));
+				dataMap.put("UxStatus", row.get("UxStatus"));
+				dataMap.put("status", row.get("status"));
+				dataMap.put("PercentageComplete", row.get("percentageComplete"));
+				
+				if ("C".equals(row.get("Status"))) {
+					dataMap.put("Status", "Created");
+					} else if ("R".equals(row.get("Status"))) {
+					dataMap.put("Status", "Resolved");
+					} else if ("A".equals(row.get("Status"))) {
+					dataMap.put("Status", "Assigned");
+					} else {
+					dataMap.put("Status", row.get("Status"));
+					}
+				responseList.add(dataMap);
+
+			}
+		} catch (Exception e) {
+			data.put("error", "Error occured, please try again!");
+			log.error("Exception occured at ProjectReleasesDao getReleases" + e.getMessage());
+		}
+		log.info("Exit from ProjectReleasesDao getReleases method");
+		
+		return responseList;
+	}
+
+
+}

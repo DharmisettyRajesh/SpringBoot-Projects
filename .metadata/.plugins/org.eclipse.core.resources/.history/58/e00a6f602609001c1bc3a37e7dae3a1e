@@ -1,0 +1,23 @@
+package com.jpa.demo;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter 
+@Setter
+public class Person {
+	private int id;
+	private String name;
+	public Person(int id, String name) {
+		super();
+		this.id = id;
+		this.name = name;
+	}
+	public Person() {
+		super();
+	}
+	
+}

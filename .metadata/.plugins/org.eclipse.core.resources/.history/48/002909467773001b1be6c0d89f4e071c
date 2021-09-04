@@ -1,0 +1,59 @@
+package com.mss.cram.service;
+
+import static com.mss.cram.constants.CramAppConstants.ACCOUNT_SAVED_MSG;
+import static com.mss.cram.constants.CramAppConstants.DATA_LAYER_EXP_IN_SAVE_ACCOUNT;
+
+import java.util.Objects;
+import java.util.function.Predicate;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.mss.cram.exceptions.CramValidationException;
+import com.mss.cram.model.Account;
+import com.mss.cram.model.Test;
+import com.mss.cram.repository.TestRepo;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
+@Service
+public class TestService {
+	
+	@Autowired
+	private TestRepo tesrepo;
+
+	private static final Logger logger = LogManager.getLogger(TestService.class);
+	public String insertTest(Test test) {
+	
+		String savedStatus=null;
+		if(validAccountRequest(test)) {
+			
+			int savedAccount = TestRepo.insertTestRec(test);
+			
+			if(Objects.nonNull(savedAccount) && savedAccount>0) 
+			{
+				savedStatus= ACCOUNT_SAVED_MSG;
+			}
+			}else {
+				logger.error(DATA_LAYER_EXP_IN_SAVE_ACCOUNT);
+				throw new CramValidationException(DATA_LAYER_EXP_IN_SAVE_ACCOUNT);
+			}
+			logger.info(savedStatus);
+			return savedStatus;
+		
+		
+	}
+	
+	
+	private boolean validAccountRequest(Test test) {
+		boolean isValid=false;
+		Predicate<String> checkValid=obj->StringUtils.isNotBlank(obj);
+		if(Objects.nonNull(test)) {
+			isValid=true;
+		}
+			return isValid;
+		}
+
+}

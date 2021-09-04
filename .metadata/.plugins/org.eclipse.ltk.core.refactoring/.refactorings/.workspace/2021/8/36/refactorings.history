@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename Java project &apos;JPAproject23&apos; to &apos;RestAssuredandrestTemplate&apos;&#x0A;- Original element: &apos;JPAproject23&apos;&#x0A;- Renamed element: &apos;JPAproject23&apos;&#x0A;- Update references to refactored element" description="Rename Java project &apos;JPAproject23&apos;" flags="7" id="org.eclipse.jdt.ui.rename.java.project" input="=JPAproject23" name="RestAssuredandrestTemplate" references="true" stamp="1630370983678" version="1.0"/>
+</session>

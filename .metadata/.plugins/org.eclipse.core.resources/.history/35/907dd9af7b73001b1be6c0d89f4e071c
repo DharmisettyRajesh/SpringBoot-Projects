@@ -1,0 +1,34 @@
+package com.mss.cram.controller;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.mss.cram.constants.CramAppMappingConstants;
+import com.mss.cram.model.Account;
+import com.mss.cram.model.Test;
+import com.mss.cram.service.TestService;
+
+@RestController
+public class TestController {
+
+	@Autowired
+	private TestService tsser;
+	
+	private static final Logger logger = LogManager.getLogger(TestController.class);
+	
+	@PostMapping(value = CramAppMappingConstants.SAVE_TEST)
+	public ResponseEntity<Object> insertRec(@RequestBody Test test) {
+		logger.info("Calling service for Inserting A Test Record");
+		return java.util.Optional.ofNullable(tsser.insertTest(test))
+				.map(obj -> new ResponseEntity(obj, HttpStatus.CREATED))
+				.orElse(new ResponseEntity("Errro occured in saveAccount", HttpStatus.BAD_REQUEST));
+	
+	}
+	
+}

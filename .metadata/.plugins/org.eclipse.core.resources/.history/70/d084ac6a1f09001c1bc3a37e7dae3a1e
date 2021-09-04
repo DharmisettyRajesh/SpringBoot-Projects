@@ -1,0 +1,16 @@
+package com.jpa.demo;
+
+import org.testng.annotations.Test;
+
+import io.restassured.RestAssured;
+
+public class Demo {
+	@Test 
+	public void getItems()
+	{
+		RestAssured.baseURI = "http://localhost:8080";
+		RestAssured.given().get("/").then().statusCode(200).log().body();
+		System.out.println("ok");
+	}
+
+}

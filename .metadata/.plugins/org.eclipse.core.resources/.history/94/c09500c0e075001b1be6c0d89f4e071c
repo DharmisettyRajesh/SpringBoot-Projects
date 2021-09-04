@@ -1,0 +1,145 @@
+package com.mss.cram.repository;
+
+import static com.mss.cram.constants.CramAppConstants.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+
+import com.mss.cram.constants.CramAppConstants;
+import com.mss.cram.exceptions.CramDataAccessLayerException;
+import com.mss.cram.model.Account;
+import com.mss.cram.model.Location;
+import com.mss.cram.util.CramUtil;
+
+import io.micrometer.core.instrument.util.StringUtils;
+
+@Repository
+public class AccountRepository {
+
+	@Autowired
+	private NamedParameterJdbcTemplate sqlJdbcTemplate;
+
+	@Autowired
+	private Properties accountQueriesProp;
+
+	@Autowired
+	private CramUtil cramutil;
+
+	private static final Logger logger = LogManager.getLogger(AccountRepository.class);
+
+	public int addAccount(Account account) {
+		String sql = accountQueriesProp.getProperty("SAVE_ACCOUNT");
+		int addResponse = 0;
+		try {
+			addResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(account));
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_SAVE_ACCOUNT + ":: {}", e.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_SAVE_ACCOUNT, e);
+		}
+		return addResponse;
+	}
+
+	public int updateAccount(Account account) {
+		String sql = accountQueriesProp.getProperty("UPDATE_ACCOUNT");
+		int updateResponse = 0;
+		int updateLocationResponse = 0;
+		try {
+			updateResponse = sqlJdbcTemplate.update(sql, new BeanPropertySqlParameterSource(account));
+		} catch (Exception e) {
+			logger.error(DATA_LAYER_EXP_IN_UPDATING_ACCOUNT + ":: {}", e.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_UPDATING_ACCOUNT, e);
+		}
+		return updateResponse;
+	}
+
+	public List<Account> fetchAccountById(int id) {
+		String sql = accountQueriesProp.getProperty("FETCH_ACCOUNT");
+		List<Account> accountList = null;
+		try {
+
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			accountList = sqlJdbcTemplate.query(sql, params,
+
+					(rs, rowNum) -> new Account(rs.getInt("a.id"), rs.getString("a.type"), rs.getString("a.name"),
+							rs.getString("a.city"), rs.getInt("a.stateLk"), rs.getInt("a.countryLkid"),
+							rs.getString("a.shortFormName"), rs.getString("a.alias"), rs.getString("a.phone"),
+							rs.getString("a.fax"), rs.getString("a.webAddress"), rs.getInt("a.noOfStudents"),
+							rs.getString("a.description"), rs.getString("a.createdBy"), rs.getString("a.dateCreated"),
+							rs.getString("a.modifiedBy"), rs.getString("a.dateModified"), rs.getString("a.linkedInUrl"),
+							rs.getString("a.addressLine1"), rs.getString("a.addressLine2"), rs.getInt("a.zipCode"),
+							rs.getString("a.department"), rs.getString("stateName")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT + ":: {}", ex.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT, ex);
+		}
+		return accountList;
+	}
+
+	public List<Account> fetchAllAccount(Account account) {
+		String sql = accountQueriesProp.getProperty("FETCH_ALL_ACCOUNT");
+
+		String serachFilterQuery = getFilterQuery(account);
+		if (StringUtils.isNotBlank(serachFilterQuery)) {
+			sql = sql + serachFilterQuery;
+		}
+		List<Account> accountList = null;
+		try {
+			accountList = sqlJdbcTemplate.query(sql,
+
+					(rs, rowNum) -> new Account(rs.getInt("a.id"), rs.getString("a.type"), rs.getString("a.name"),
+							rs.getString("a.city"), rs.getInt("a.stateLk"), rs.getInt("a.countryLkid"),
+							rs.getString("a.shortFormName"), rs.getString("a.alias"), rs.getString("a.phone"),
+							rs.getString("a.fax"), rs.getString("a.webAddress"), rs.getInt("a.noOfStudents"),
+							rs.getString("a.description"), rs.getString("a.createdBy"), rs.getString("a.dateCreated"),
+							rs.getString("a.modifiedBy"), rs.getString("a.dateModified"), rs.getString("a.linkedInUrl"),
+							rs.getString("a.addressLine1"), rs.getString("a.addressLine2"), rs.getInt("a.zipCode"),
+							rs.getString("a.department"), rs.getString("stateName")));
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT + ":: {}", ex.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_FETCHING_ACCOUNT, ex);
+		}
+		return accountList;
+	}
+
+	public int deleteAccount(int id) {
+		String sql = accountQueriesProp.getProperty("DELETE_ACCOUNT");
+		try {
+			MapSqlParameterSource params = new MapSqlParameterSource();
+			params.addValue("id", id);
+			return sqlJdbcTemplate.update(sql, params);
+		} catch (Exception ex) {
+			logger.error(DATA_LAYER_EXP_IN_DELETE_CONTACTS + ":: {}", ex.getMessage());
+			throw new CramDataAccessLayerException(DATA_LAYER_EXP_IN_DELETE_CONTACTS, ex);
+		}
+
+	}
+
+	private String getFilterQuery(Account account) {
+
+		List<Object[]> filter = new ArrayList();
+
+		if (StringUtils.isNotBlank(account.getName()))
+			filter.add(new Object[] { "a.name", account.getName(), CramAppConstants.STRING_TYPE, "LIKE" });
+		if (Objects.nonNull(account.getStateLK()) && account.getStateLK() > 0)
+			filter.add(new Object[] { "a.stateLK", account.getStateLK(), CramAppConstants.INTEGER_TYPE, " = " });
+		if (Objects.nonNull(account.getCountryLkId()) && account.getCountryLkId() > 0)
+			filter.add(
+					new Object[] { "a.countryLKId", account.getCountryLkId(), CramAppConstants.INTEGER_TYPE, " = " });
+
+		return cramutil.getFilter(filter);
+	}
+
+}

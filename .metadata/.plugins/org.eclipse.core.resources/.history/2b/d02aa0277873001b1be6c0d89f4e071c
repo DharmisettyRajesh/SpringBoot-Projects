@@ -1,0 +1,30 @@
+server:
+  port: 8086
+  servlet:
+    context-path: "/cram_app"
+
+spring:
+  profiles:
+    active: "LOCAL"
+  datasource:
+    password: ${environment.password}
+    url: ${environment.url}
+    username: ${environment.username}
+       
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+---
+spring:
+  profiles: "LOCAL"
+environment:
+  full: "LOCAL"
+  password: Sam@1234
+  url: jdbc:mysql://172.17.12.68:3306/cram?zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+  username: msdm 
+
+---
+spring:
+  profiles: "DEV"

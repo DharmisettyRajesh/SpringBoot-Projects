@@ -1,0 +1,26 @@
+package com.jpa.demo.Managers;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ManagerService {
+	
+	@Autowired
+	JdbcTemplate jt; 
+	
+	public List<Manager> getall()
+	{
+		String sql="select * from manager";
+		return jt.query(sql,(rs,rownum)->new Manager(
+				rs.getInt(1),
+				rs.getString(2),
+				rs.getString(3),
+				rs.getString(4)
+				));
+	}
+
+}

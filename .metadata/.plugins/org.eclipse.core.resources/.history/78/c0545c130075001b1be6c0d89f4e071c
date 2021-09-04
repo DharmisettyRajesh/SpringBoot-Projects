@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+<util:properties id="contactQueriesBean">
+<prop key="FETCH_CONTACT"> select * from tblcrmcontact; </prop>
+<prop key="SAVE_CONTACT"> insert into tblcrmcontact(name, contactAddress,contactPhone,contactEmail) values(:name,:contactAddress,:contactPhone,:contactEmail); </prop>
+<prop key="DELETE_CONTACT"> delete from tblcrmcontact where id = :contactId; </prop>
+</util:properties>
+	<!--
+	Account Queries
+	-->
+	<util:properties id="accountQueriesProp">
+		<prop key="SAVE_ACCOUNT">
+insert into account(type,name,city,stateLK,countryLkId,shortFormName,alias,phone,fax,webAddress,noOfStudents,description, createdBy,
+dateCreated,linkedInUrl,addressLine1,addressLine2,zipcode,department) values(:type,:name,:city,:stateLK,:countryLkId,:shortFormName,
+ :alias,:phone,:fax,:webAddress,:noOfStudents,:description,:createdBy,:dateCreated,:linkedInUrl,:addressLine1,:addressLine2,:zipCode,:department);
+</prop>
+		<prop key="SAVE_ADDRESS">
+insert into tblcrlocation(name,country,addressLine,village,mandal,district,state,zip,orgid,objectId) values(:name,:country,:addressLine,:village,:mandal,:district,:state,:zip,:orgid,:objectId);
+</prop>
+		<prop key="UPDATE_ACCOUNT">
+update account set type=:type,name=:name,city=:city,stateLK=:stateLK,countryLkId=:countryLkId, shortFormName=:shortFormName,alias=:alias,phone=:phone,fax=:fax,webAddress=:webAddress,noOfStudents=:noOfStudents, description=:description,modifiedBy=:modifiedBy,dateModified=:dateModified,linkedInUrl=:linkedInUrl,addressLine1=:addressLine1, addressLine2=:addressLine2,zipCode=:zipCode,department=:department where id=:id;
+</prop>
+		<prop key="FETCH_ALL_ACCOUNT"> select a.id,a.type,a.name,a.city,a.stateLk,a.countryLkid,a.shortFormName,a.alias,a.phone,a.fax,a.webAddress,
+a.noOfStudents,a.description,
+a.createdBy,a.dateCreated,a.modifiedBy,a.dateModified,a.linkedinUrl,a.addressLine1,a.addressLine2,a.zipCode,
+a.department,ls.labelui as stateName from account a,
+lookupstate ls where a.countryLkId=ls.codeid and a.statelk=ls.id </prop>
+		<prop key="FETCH_ACCOUNT"> select a.id,a.type,a.name,a.city,a.stateLk,a.countryLkid,a.shortFormName,a.alias,a.phone,a.fax,a.webAddress,
+a.noOfStudents,a.description,
+a.createdBy,a.dateCreated,a.modifiedBy,a.dateModified,a.linkedinUrl,a.addressLine1,a.addressLine2,a.zipCode,
+a.department,ls.labelui as stateName from account a,
+lookupstate ls where a.countryLkId=ls.codeid and a.statelk=ls.id  and a.id=:id </prop>
+		<prop key="FETCH_LOCTION">
+select * from tblcrlocation where objectid=:objectid
+</prop>
+		<prop key="UPDATE_ADDRESS">
+update tblcrlocation set name=:name,country=:country,addressLine=:addressLine,village=:village,mandal=:mandal, district=:district,state=:state,zip=:zip,orgid=:orgid where id=:id;
+</prop>
+
+		<prop key="DELETE_ACCOUNT">
+delete from account where id=:id ;
+</prop>
+	</util:properties>
+	
+	<!--
+	Lookup Queries
+	-->
+	
+	<util:properties id="lookupQueriesProp">
+		<prop key="FETCH_COUNTRIES">
+	select * from lookupcode where codeId= :codeId;
+	</prop>
+	<prop key="ACCOUNT_LOOKUP">
+	select distinct a.id,a.name from account a,contact c where a.id=c.accountId;
+	</prop>
+	<prop key="ALL_ACCOUNT_LOOKUP">
+	select id as valueui,name as labelui from account
+	</prop>
+	<prop key="STATES_LOOKUP">
+	select * from lookupstate where codeid=:codeid;
+	</prop>
+	<prop key="CONTACT_LOOKUP">
+	select c.id,CONCAT(c.fname,' ',c.mname,' ',c.lname) as name, c.departmentLKId, lc.labelui as departmentName from CONTACT c, lookupcode lc
+ where c.accountId=:accountId and c.departmentLKId=lc.id;
+	</prop>
+	</util:properties>
+<!-- Contact1 Queries -->
+
+	<util:properties id="contact1QueriesProp">
+
+		<prop key="FETCH_ALL_CONTACT1">
+		
+			select c.id, c.loginId, c.password, c.countryLkId, c.accountId, c.departmentLkId, c.recruiterId, c.isManager, c.isTeamLead,
+			c.statusLKId, c.lName, c.fName, c.mName, c.Title, c.aliasName, c.comments, c.SSN,
+		    c.UANNo, c.PFNo, c.gender, c.maritalStatus, c.email1, c.email2, c.workPhoneNo, c.homePhoneNo, c.alterPhoneNo,
+	        c.referredBy, c.birthDate, c.interviewDate, c.hireDate, c.anniversaryDate, c.terminationDate,
+			c.preferedQuestion, c.preferedAnswer, c.lastContactDate, c.lastContactId, c.createdBy, c.createdDate, c.modifiedBy, c.modifiedDate,
+			c.photo, c.ShiftTimings, c.OutSideAccess, c.addressLine1, c.addressLine2, c.city, c.zip, c.stateLkId, c.type, c.skills, c.linkedIn,
+			ls.labelui as stateName from contact c, lookupstate ls where c.countryLkId=ls.codeid and c.stateLkId=ls.id
+		</prop>
+
+		<prop key="SAVE_CONTACT1">
+			insert into contact (loginId, password,countryLkId,accountId, departmentLkId, recruiterId, isManager, isTeamLead,
+			statusLKId, lName, fName, mName, title, aliasName, comments, ssn,
+			uanNo, pfNo, gender, maritalStatus, email1, email2, workPhoneNo, homePhoneNo, alterPhoneNo, referredBy,
+			birthDate, interviewDate, hireDate, anniversaryDate, terminationDate, preferedQuestion, preferedAnswer, lastContactDate,
+			lastContactId, createdBy, createdDate, modifiedBy, modifiedDate, photo, shiftTimings, outSideAccess, addressLine1, addressLine2,
+			city, zip, stateLkId, type,linkedIn,skills)
+			values(:loginId, :password, :countryLkId, :accountId, :departmentLkId, :recruiterId, :isManager, :isTeamLead,
+			:statusLKId, :lName, :fName, :mName, :title, :aliasName, :comments, :ssn,
+			:uanNo, :pfNo, :gender, :maritalStatus, :email1, :email2, :workPhoneNo, :homePhoneNo, :alterPhoneNo, :referredBy,
+			:birthDate, :interviewDate, :hireDate, :anniversaryDate, :terminationDate, :preferedQuestion, :preferedAnswer, :lastContactDate,
+			:lastContactId, :createdBy, :createdDate, :modifiedBy, :modifiedDate, :photo, :shiftTimings, :outSideAccess, :addressLine1, :addressLine2,
+			:city, :zip, :stateLkId, :type, :linkedIn, :skills);
+		</prop>
+
+		<prop key="UPDATE_CONTACT1">
+		update contact set loginId=:loginId, password=:password, countryLkId=:countryLkId, accountId=:accountId, departmentLkId=:departmentLkId, recruiterId=:recruiterId, isManager=:isManager, isTeamLead=:isTeamLead,
+			statusLKId=:statusLKId, lName=:lName, fName=:fName, mName=:mName, title=:title, aliasName=:aliasName, comments=:comments, ssn=:ssn,
+			uanNo=:uanNo, pfNo=:pfNo, gender=:gender, maritalStatus=:maritalStatus, email1=:email1, email2=:email2, workPhoneNo=:workPhoneNo, homePhoneNo=:homePhoneNo, alterPhoneNo=:alterPhoneNo, referredBy=:referredBy,
+			birthDate=:birthDate, interviewDate=:interviewDate, hireDate=:hireDate, anniversaryDate=:anniversaryDate, terminationDate=:terminationDate, preferedQuestion=:preferedQuestion, preferedAnswer=:preferedAnswer, lastContactDate=:lastContactDate,
+			lastContactId=:lastContactId, createdBy=:createdBy, createdDate=:createdDate, modifiedBy=:modifiedBy, modifiedDate=:modifiedDate, photo=:photo, shiftTimings=:shiftTimings, outSideAccess=:outSideAccess, addressLine1=:addressLine1,
+			addressLine2=:addressLine2, city=:city, zip=:zip, stateLkId=:stateLkId, type=:type,linkedIn=:linkedIn,skills=:skills  where id=:id;
+		</prop>
+
+		<prop key="DELETE_CONTACT1">
+			delete from contact where id = :id;
+		</prop>
+
+		<prop key="FETCH_CONTACT1">
+		select c.id, c.loginId, c.password, c.countryLkId, c.accountId, c.departmentLkId, c.recruiterId, c.isManager, c.isTeamLead,
+			c.statusLKId, c.lName, c.fName, c.mName, c.Title, c.aliasName, c.comments, c.SSN,
+		    c.UANNo, c.PFNo, c.gender, c.maritalStatus, c.email1, c.email2, c.workPhoneNo, c.homePhoneNo, c.alterPhoneNo,
+	        c.referredBy, c.birthDate, c.interviewDate, c.hireDate, c.anniversaryDate, c.terminationDate,
+			c.preferedQuestion, c.preferedAnswer, c.lastContactDate, c.lastContactId, c.createdBy, c.createdDate, c.modifiedBy, c.modifiedDate,
+			c.photo, c.ShiftTimings, c.OutSideAccess, c.addressLine1, c.addressLine2, c.city, c.zip, c.stateLkId, c.type, c.skills, c.linkedIn,
+			ls.labelui as stateName from contact c, lookupstate ls where c.countryLkId=ls.codeid and c.stateLkId=ls.id and c.id= :id;
+		</prop>
+	</util:properties>
+	
+	
+	<!--
+	Activity Queries
+	-->
+	<util:properties id="activityQueriesProp">
+
+		<prop key="INSERT_ACTIVITY">
+			insert into activity(title, accountId,department,contactId, activityType, description,createdOn,createdBy,activityDate)
+			values(:title, :accountId, :department, :contactId, :activityType, :description,:createdOn,:createdBy,:activityDate);
+		</prop>
+		
+		<prop key="GET_ALL_ACTIVITY">
+			select at.id,at.title,at.accountId,at.department,at.contactId,at.activityType,at.description,at.modifiedOn, at.modifiedBy,
+			 at.createdOn, at.createdBy, at.activityDate, a.name as accountName,CONCAT(c.fname,' ',c.mname,' ',c.lname) as contactName 
+			  from activity at,account a,contact c where at.accountId=a.id and at.contactId=c.id  
+		</prop>
+		<prop key="GET_ACTIVITY"> select at.id,at.title,at.accountId,at.department,at.contactId,at.activityType,at.description,at.activityDate,
+		 at.modifiedOn, at.modifiedBy, at.createdOn, at.createdBy, a.name as accountName,CONCAT(c.fname,' ',c.mname,' ',c.lname) 
+		 as contactName from activity at,account a,contact c where at.accountId=a.id and at.contactId=c.id and at.id=:id </prop>
+		<prop key="UPDATE_ACTIVITY">
+			update activity set title=:title,accountId=:accountId,department=:department,contactId=:contactId,activityType=:activityType,
+			 description=:description,activityDate=:activityDate,modifiedOn=:modifiedOn,modifiedBy=:modifiedBy where id=:id;
+		</prop>
+
+		<prop key="DELETE_ACTIVITY">
+			delete from activity where id=:id ;
+		</prop>
+	</util:properties>
+	
+	<!--
+	Course Queries
+	-->
+	<util:properties id="courseQueriesProp">
+
+		<prop key="SAVE_COURSE">
+			insert into course(cNo, cTitle, description, uxCourseType, uxRoleType, createdBy,createdDate, author, estimatedTime, crsReferences, 
+			startDate, endDate, status, duration) values(:cNo, :cTitle, :description, :uxCourseType, :uxRoleType,  :createdBy, :createdDate,
+			 :author, :estimatedTime, :crsReferences, :startDate, :endDate, :status, :duration);
+		</prop>
+		<prop key="UPDATE_COURSE">
+			update course set cNo=:cNo, cTitle=:cTitle, description=:description, uxCourseType=:uxCourseType, uxRoleType=:uxRoleType, 
+			modifiedDate=:modifiedDate, createdBy=:createdBy, modifiedBy=:modifiedBy, author=:author, estimatedTime=:estimatedTime, 
+			crsReferences=:crsReferences,createdDate=:createdDate, startDate=:startDate, endDate=:endDate, status=:status, duration=:duration where id=:id;
+		</prop>
+
+		<prop key="DELETE_COURSE">
+			delete from course where id=:id ;
+		</prop>
+		
+		<prop key="FETCH_ALL_COURSE">
+		select * from course where 1=1
+		</prop>
+		
+		<prop key="FETCH_COURSE">
+		select * from course where id=:id;
+		</prop>
+	</util:properties>
+	
+	<!--
+	Schedule Queries
+	-->
+	<util:properties id="CourseScheduleQueriesProp">
+	<prop key="SAVE_COURSE_SCHEDULE">
+	insert into crsschedule (courseId, cost, capacity, locationType, location, instructorMachines,studentMachines, offeredDate,
+			 startTime, endTime, createdBy, createdDate, instructor, hrManager) 
+			 values (:courseId, :cost, :capacity, :locationType, :location, :instructorMachines, :studentMachines, :offeredDate, :startTime,
+			  :endTime, :createdBy, :createdDate, :instructor, :hrManager);
+	</prop>
+	
+	<prop key="UPDATE_COURSE_SCHEDULE">
+			 update crsschedule set courseId=:courseId, cost=:cost, capacity=:capacity, locationType=:locationType, location=:location,
+			 instructorMachines=:instructorMachines,studentMachines=:studentMachines, offeredDate=:offeredDate, modifiedDate=:modifiedDate, 
+			 startTime=:startTime, endTime=:endTime, createdBy=:createdBy, createdDate=:createdDate, modifiedBy=:modifiedBy,
+			 instructor=:instructor, hrManager=:hrManager where id=:id;
+		</prop>
+
+		<prop key="DELETE_COURSE_SCHEDULE">
+			 delete from crsschedule where id=:id;
+		</prop>
+		
+		<prop key="FETCH_ALL_COURSE_SCHEDULE">
+		     select id, courseId, cost, capacity, locationType, location, instructorMachines,studentMachines, offeredDate,
+			 startTime, endTime, createdBy, createdDate, instructor, modifiedDate, modifiedBy, hrManager from crsschedule where 1=1
+		</prop>
+		
+		<prop key="FETCH_COURSE_SCHEDULE">
+		     select * from crsschedule where id=:id;
+		</prop>
+	</util:properties>
+	
+	<!--
+	Course Attendee Queries
+	-->
+	<util:properties id="CourseAttendeeQueriesProp">
+	<prop key="SAVE_COURSE_ATTENDEE">
+	insert into crsattendee (crsScheduleId, attendeeId, attendeeMgrId, status, attendance, quiz, instructorFeedback, attendeeFeedback, comments,
+	 addedDate, approvedDate, createdBy) 
+			 values (:crsScheduleId, :attendeeId, :attendeeMgrId, :status, :attendance, :quiz, :instructorFeedback,:attendeeFeedback, :comments,
+			  :addedDate, :approvedDate,:createdBy);
+	</prop>
+	<prop key="UPDATE_COURSE_ATTENDEE">
+			 update crsattendee set crsScheduleId=:crsScheduleId, attendeeId=:attendeeId, attendeeMgrId=:attendeeMgrId, status=:status,
+			  attendance=:attendance, quiz=:quiz, instructorFeedback=:instructorFeedback, attendeeFeedback=:attendeeFeedback, comments=:comments,
+			   addedDate=:addedDate, approvedDate=:approvedDate, modifiedDate=:modifiedDate, createdBy=:createdBy, modifiedBy=:modifiedBy
+			   where id=:id;
+		</prop>
+		<prop key="DELETE_COURSE_ATTENDEE">
+			 delete from crsattendee where id=:id;
+		</prop>
+		<prop key="FETCH_ALL_COURSE_ATTENDEE">
+		     select crsScheduleId, attendeeId, attendeeMgrId, status, attendance, quiz, instructorFeedback, attendeeFeedback, comments,
+	 		 addedDate, approvedDate, createdBy, modifiedBy, modifiedDate, id from crsattendee;
+		</prop>
+		<prop key="FETCH_COURSE_ATTENDEE">
+		     select * from crsattendee where id=:id;
+		</prop>
+	</util:properties>
+	
+	<!--
+	Module Queries
+	-->
+	<util:properties id="moduleQueriesProp">
+	<prop key="SAVE_MODULE">
+	insert into module (courseId, mTitle, description, createdBy, author, estimatedTime) 
+			 values (:courseId, :mTitle, :description, :createdBy,:author, :estimatedTime);
+	</prop>
+	<prop key="UPDATE_MODULE">
+			 update module set courseId=:courseId,mTitle=:mTitle, description=:description, createdBy=:createdBy,author=:author, 
+			 estimatedTime=:estimatedTime where id=:id;
+		</prop>
+		<prop key="DELETE_MODULE">
+			 delete from module where id=:id;
+		</prop>
+		<prop key="FETCH_ALL_MODULE">
+		     select courseId, mTitle, description, createdBy, createdDate, author, estimatedTime, modifiedDate, modifiedBy, id from module;
+		</prop>
+		<prop key="FETCH_MODULE">
+		     select * from module where id=:id;
+		</prop>
+	<!-- 	<prop key="FETCH_MODSECTION1">
+		     select * from modsection where moduleId=:moduleId;
+		</prop> -->
+	</util:properties>
+	
+	<!--
+	Mod Section Queries
+	-->
+	<util:properties id="ModSectionQueriesProp">
+	<prop key="SAVE_MODSECTION">
+	insert into modsection (moduleId,seqNo,sectionTitle,description,videoLinks,htmlLinks,notes,author,estimatedTime,createdBy) 
+			 values (:moduleId, :seqNo, :sectionTitle, :description, :videoLinks, :htmlLinks, :notes, :author, :estimatedTime, :createdBy);
+	</prop>
+	<prop key="UPDATE_MODSECTION">
+			 update modsection set moduleId=:moduleId, seqNo=:seqNo,sectionTitle=:sectionTitle,description=:description,videoLinks=:videoLinks,
+			 htmlLinks=:htmlLinks,notes=:notes, author=author,estimatedTime=:estimatedTime, createdBy=:createdBy,modifiedDate=:modifiedDate,
+			 modifiedBy=:modifiedBy where id=:id;
+		</prop>
+		<prop key="DELETE_MODSECTION">
+			 delete from modsection where id=:id;
+		</prop>
+		<prop key="FETCH_ALL_MODSECTION">
+		     select moduleId,seqNo,sectionTitle,description,videoLinks,htmlLinks,notes,author,estimatedTime,createdBy, createdDate, modifiedDate,
+		      modifiedBy, id from modsection;
+		</prop>
+		
+		<prop key="FETCH_MODSECTION">
+		     select * from modsection where id=:id;
+		</prop>
+		
+	</util:properties>
+	
+	<util:properties id="testQueriesProp">
+		<prop key="SAVE_TEST">
+insert into test_table(name,contract) values(:name,:contract);
+</prop>
+	<prop key="FETCH_TEST">
+select * from test_table where id=:id;
+</prop>
+</util:properties>
+	
+	</beans>
